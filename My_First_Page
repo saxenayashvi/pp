@@ -205,19 +205,19 @@ if current_page == "home":
                     font-weight: 800;
                     color: #1a1a1a;
                     font-family: 'EYInterstate', Arial, sans-serif;
-                    margin-bottom: 22px;
+                    margin-bottom: 24px;
                     letter-spacing: 1px;
               }}
 
               /* Description paragraph */
               .landing-desc {{
-                    font-size: 15px;
+                    font-size: 17px;
                     color: #333;
                     font-family: 'EYInterstate', Arial, sans-serif;
                     line-height: 1.65;
                     text-align: justify;
-                    max-width: 600px;
-                    margin-bottom: 0;
+                    max-width: 560px;
+                    margin-bottom: 24px;
               }}
 
               /* Footer */
