@@ -121,7 +121,7 @@ current_page = st.session_state["page"]
 
 
 # ============================================================
-# PAGE 1: HOME (Landing) — Single merged card + Streamlit Begin button
+# PAGE 1: HOME (Landing) — BI4BI title + description + Begin
 # ============================================================
 if current_page == "home":
     # Assets
@@ -143,7 +143,7 @@ if current_page == "home":
               html, body {{
                 margin: 0 !important;
                 padding: 0 !important;
-                height: 90vh !important;
+                height: 100vh !important;
                 overflow: hidden !important;
               }}
 
@@ -152,120 +152,104 @@ if current_page == "home":
               [data-testid="stToolbar"] {{ display: none !important; }}
 
               .stApp {{
-                background: url("data:image/png;base64,{bg_b64}") !important;
+                background: url("data:image/png;base64,{bg_b64}") no-repeat center center !important;
+                background-size: cover !important;
               }}
 
-              /* EY Logo */
+              section.main, .main .block-container, .block-container {{
+                background: transparent !important;
+                box-shadow: none !important;
+              }}
+
+              /* EY Logo — fixed bottom-right */
               .landing-logo {{
                     position: fixed;
-                    top: 60px;
-                    right: 60px;
+                    bottom: 30px;
+                    right: 40px;
                     z-index: 9999;
               }}
               .landing-logo img {{
-                    width: 140px;
+                    width: 120px;
                     height: auto;
               }}
 
-              /* Single merged card */
-              .feature-card-container {{
+              /* Landing content wrapper — vertically centered */
+              .landing-content {{
                     display: flex;
+                    flex-direction: column;
+                    align-items: center;
                     justify-content: center;
-                    margin-top: 2.2cm;
-                    padding-bottom: 3.2cm;
-                    padding-top: 1cm;
+                    min-height: 78vh;
+                    padding: 0 20px;
               }}
 
-              .feature-card {{
-                    background: rgba(255, 255, 255, 0.92);
-                    width: 100%;
-                    max-width: 720px;
-                    padding: 32px 36px;
-                    border-radius: 16px;
-                    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
-                    font-family: Arial, sans-serif;
+              /* Title */
+              .landing-title {{
+                    font-size: 52px;
+                    font-weight: 800;
+                    color: #1a1a1a;
+                    font-family: 'EYInterstate', Arial, sans-serif;
+                    margin-bottom: 28px;
+                    letter-spacing: 1px;
               }}
 
-              .feature-section {{
-                    margin-bottom: 18px;
-              }}
-              .feature-section:last-child {{
-                    margin-bottom: 0;
-              }}
-
-              .feature-section .feature-title {{
-                    font-size: 17px;
-                    font-weight: 700;
-                    color: #000;
-                    text-align: center;
-                    padding-bottom: 5px;
-              }}
-
-              .feature-section p {{
-                    font-size: 14px;
-                    color: #444;
-                    margin: 0;
-                    line-height: 1.55;
+              /* Description paragraph */
+              .landing-desc {{
+                    font-size: 15.5px;
+                    color: #333;
+                    font-family: 'EYInterstate', Arial, sans-serif;
+                    line-height: 1.7;
                     text-align: justify;
+                    max-width: 620px;
+                    margin-bottom: 32px;
               }}
 
-              .feature-divider {{
-                    border: none;
-                    border-top: 1px solid rgba(0,0,0,0.08);
-                    margin: 16px 0;
-              }}
-
+              /* Footer */
               .landing-footer {{
-                margin-top: 1rem;
-                font-size: 12px;
-                color: #999;
-                text-align: center;
+                    font-size: 12px;
+                    color: #888;
+                    text-align: center;
+                    margin-top: 12px;
               }}
-            .stButton > button {{
-                background-color: #FFD100 !important;   /* EY Yellow */
-                color: #000 !important;
-                height: 50px !important;
-            }}
-            .stButton > button:hover {{
-                background-color: #FFC000 !important; /* Darker EY Yellow */
-            }}
+
+              /* Begin button */
+              .stButton > button {{
+                    background-color: #FFD100 !important;
+                    color: #000 !important;
+                    height: 50px !important;
+                    font-size: 16px !important;
+                    font-weight: 700 !important;
+                    border: none !important;
+                    border-radius: 6px !important;
+              }}
+              .stButton > button:hover {{
+                    background-color: #FFC000 !important;
+              }}
             </style>
 
-            <!-- FIXED EY LOGO -->
+            <!-- FIXED EY LOGO (bottom-right) -->
             <div class="landing-logo">
                 <img src="data:image/png;base64,{logo_b64}" />
             </div>
-            
+
             """,
             unsafe_allow_html=True,
         )
 
         # ---------- CONTENT AREA ----------
-        left, mid, right = st.columns([0.2, 4, 0.2])
+        left, mid, right = st.columns([0.3, 3.4, 0.3])
         with mid:
 
-            # Single Merged Feature Card
             st.markdown(
                 """
-                <div style="text-align: center; margin-top: -1.5rem;">
-                    <div style="font-size: 45px; font-weight: 700; color: #222;">BI4BI</div>
-                </div>
-                <div class="feature-card-container">
-                    <div class="feature-card">
-                        <div class="feature-section">
-                            <div class="feature-title">E2E BI Metadata</div>
-                            <p>Automatically extracts and organizes complete BI metadata across your environment for structured visibility.</p>
-                        </div>
-                        <hr class="feature-divider" />
-                        <div class="feature-section">
-                            <div class="feature-title">Smart Rationalization</div>
-                            <p>Identifies redundancies, unused components, and optimization opportunities using data‑driven insights.</p>
-                        </div>
-                        <hr class="feature-divider" />
-                        <div class="feature-section">
-                            <div class="feature-title">Accelerated Upgrade</div>
-                            <p>Reduces manual analysis and speeds up BI upgrades with automated, intelligent assessments.</p>
-                        </div>
+                <div class="landing-content">
+                    <div class="landing-title">BI4BI</div>
+                    <div class="landing-desc">
+                        The <strong>BI4BI</strong> &ndash; the rationalization tool/accelerator that is designed to
+                        provide EY's clients a suite of BI rationalization solution. The tool can provide
+                        end-to-end BI metadata with an organized view and suggest the possible
+                        rationalization based on each client's BI environment to reduce manual
+                        analysis of the BI environment for BI modernization or upgrade.
                     </div>
                 </div>
                 """,
