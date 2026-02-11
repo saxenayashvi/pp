@@ -60,7 +60,37 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         div[data-testid="stForm"] button[type="submit"]:first-of-type:hover {
             background-color: #FFC000 !important;
         }
+        /* Back button — top left, subtle style (consistent theme) */
+        .back-btn-top div[data-testid="stButton"] {
+            display: flex !important;
+            justify-content: flex-start !important;
+        }
+        .back-btn-top div[data-testid="stButton"] > button {
+            background: transparent !important;
+            color: #222 !important;
+            font-weight: 600 !important;
+            border: 1px solid #ccc !important;
+            box-shadow: none !important;
+            min-width: auto !important;
+            padding: 0.3rem 0.9rem !important;
+            font-size: 0.85rem !important;
+            border-radius: 8px !important;
+        }
+        .back-btn-top div[data-testid="stButton"] > button:hover {
+            background: rgba(0,0,0,0.05) !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
     </style>""", unsafe_allow_html=True)
+
+    # ← Back button at the TOP LEFT
+    st.markdown('<div class="back-btn-top">', unsafe_allow_html=True)
+    if st.button("← Back", key="back_from_configure"):
+        st.session_state['page'] = 'choose_tool'
+        if 'selected_tool' in st.session_state:
+            del st.session_state['selected_tool']
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ---------- Header ----------
     st.markdown(f"<h2 style='text-align:center; margin-bottom:0;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
