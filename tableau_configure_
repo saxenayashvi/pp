@@ -1,0 +1,112 @@
+import os
+import streamlit as st
+import requests
+import pandas as pd
+from core.config import BACKEND_URL, CREDENTIALS_PATH
+
+# NOTE: this module exposes a callable function `render_configure_page(selected_tool)`
+# so the configuration UI can be embedded in other pages without creating a new Streamlit page.
+
+
+def _load_saved_credentials():
+    cred_path = os.path.abspath(CREDENTIALS_PATH)
+    server_saved = None
+    api_version_saved = '3.17'
+    token_name_saved = None
+    token_secret_saved = None
+    site_name_saved = ''
+    if os.path.exists(cred_path):
+        try:
+            df = pd.read_csv(cred_path)
+            row = df.iloc[0]
+            server_saved = row.get('server_saved')
+            api_version_saved = row.get('api_version_saved') or api_version_saved
+            token_name_saved = row.get('token_name_saved')
+            token_secret_saved = row.get('token_secret_saved')
+            site_name_saved = row.get('site_name_saved') or site_name_saved
+        except Exception:
+            pass
+    return cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved
+
+
+def render_configure_page(selected_tool: str = 'Tableau'):
+    """Render the configure UI for the given tool inside the current Streamlit page."""
+    st.header(f"Configure {selected_tool}")
+
+    cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved = _load_saved_credentials()
+    st.markdown(f"""<style> 
+        html, body, .stApp {{
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+    }}
+    
+    </style>""", unsafe_allow_html=True)
+
+    with st.form('tableau'):
+        st.write('Provide Tableau connection details (personal access token)')
+        server = st.text_input('Server', value=server_saved)
+        api_version = st.text_input('API version', value=api_version_saved)
+        token_name = st.text_input('Token name', value=token_name_saved)
+        token_secret = st.text_input('Token secret', value=token_secret_saved)
+        site_name = st.text_input('Site name', value=site_name_saved)
+        remember = st.checkbox('Remember credentials (stores in Streamlit_application/credentials.csv)')
+        submit = st.form_submit_button('Execute')
+
+    if st.button('← Back to Tools'):
+        st.session_state['page'] = 'choose_tool'
+        if 'selected_tool' in st.session_state:
+            del st.session_state['selected_tool']
+        st.rerun()
+
+    if submit:
+        config = {
+            'tableau_prod': {
+                'server': server,
+                'api_version': api_version,
+                'personal_access_token_name': token_name,
+                'personal_access_token_secret': token_secret,
+                'site_name': site_name,
+            }
+        }
+
+        if remember:
+            try:
+                dfw = pd.DataFrame({
+                    'server_saved': [server],
+                    'api_version_saved': [api_version],
+                    'token_name_saved': [token_name],
+                    'token_secret_saved': [token_secret],
+                    'site_name_saved': [site_name],
+                    'site_url_saved': ['']
+                })
+                os.makedirs(os.path.dirname(cred_path), exist_ok=True)
+                dfw.to_csv(cred_path, index=False)
+                st.success('Credentials saved')
+            except Exception as e:
+                st.error(f'Failed saving credentials: {e}')
+
+        adapter_key = selected_tool.lower() if selected_tool else 'tableau'
+        with st.spinner('Submitting execution to backend...'):
+            try:
+                r = requests.post(f'{BACKEND_URL}/reports/execute', json={'adapter': adapter_key, 'config': config}, timeout=60)
+                r.raise_for_status()
+                st.success('Execution requested successfully')
+                result = r.json()
+                st.json(result)
+
+                # If backend returned file paths, show download links
+                outputs = result.get('outputs', {}) if isinstance(result, dict) else {}
+                for name, path in outputs.items():
+                    if os.path.exists(path):
+                        st.markdown(f"- `{name}`: [Download]({path})")
+
+            except Exception as e:
+                st.error(f'Execution failed: {e}')
+
+
+if __name__ == '__main__':
+    # Allow running this file directly for quick debugging
+    st.set_page_config(page_title='bi4bi - Configure (debug)', layout='centered')
+    render_configure_page('Tableau')
