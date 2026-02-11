@@ -1,0 +1,430 @@
+import streamlit as st
+import base64
+from pathlib import Path
+from datetime import datetime
+
+
+# ---------------- PAGE CONFIG (must be first) ----------------
+st.set_page_config(
+    page_title="BI4BI - EY Landing Page",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+BASE = Path(__file__).parent
+
+USE_INTERNAL_BG_AND_LOGO = True  # internal pages background/logo
+
+
+# ---------------- UTILS ----------------
+def get_base64(path: Path) -> str:
+    return base64.b64encode(path.read_bytes()).decode("utf-8")
+
+
+def load_css(file_path: Path) -> None:
+    if file_path.exists():
+        st.markdown(f"<style>{file_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
+
+
+def _get_query_params():
+    """Support both new and old Streamlit APIs."""
+    try:
+        qp = dict(st.query_params)
+        return {k: (v[0] if isinstance(v, list) else v) for k, v in qp.items()}
+    except Exception:
+        qp = st.experimental_get_query_params()
+        return {k: (v[0] if isinstance(v, list) else v) for k, v in qp.items()}
+
+
+def _clear_query_params():
+    try:
+        st.query_params.clear()
+    except Exception:
+        st.experimental_set_query_params()
+
+
+# ---------------- INTERNAL PAGES: BACKGROUND / LOGO ----------------
+def inject_background():
+    import mimetypes
+    candidates = [BASE / "background.png", BASE.parent / "background.png"]
+    bg_path = next((p for p in candidates if p.exists()), None)
+    if not bg_path:
+        return
+
+    mime, _ = mimetypes.guess_type(str(bg_path))
+    mime = mime or "image/png"
+    b64 = get_base64(bg_path)
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: url("data:{mime};base64,{b64}") no-repeat fixed center center !important;
+            background-size: cover !important;
+        }}
+        section.main, .main .block-container, .block-container {{
+            background: transparent !important;
+            box-shadow: none !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def inject_logo():
+    candidates = [BASE / "ey_logo.png", BASE.parent / "ey_logo.png"]
+    logo_path = next((p for p in candidates if p.exists()), None)
+    if not logo_path:
+        return
+    b64 = get_base64(logo_path)
+
+    st.markdown(
+        f"""
+        <style>
+        .ey-logo-fixed {{
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 140px;
+            height: auto;
+            z-index: 100000;
+            pointer-events: none;
+            filter: drop-shadow(0 0 6px rgba(0,0,0,0.08));
+        }}
+        </style>
+        <img class="ey-logo-fixed" src="data:image/png;base64,{b64}" alt="EY Logo" />
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------- SESSION STATE ----------------
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+if "coming_soon_tool" not in st.session_state:
+    st.session_state["coming_soon_tool"] = None
+
+
+# ---------------- QUERY PARAM ROUTING (optional) ----------------
+qp = _get_query_params()
+qp_page = qp.get("page")
+if qp_page and st.session_state.get("page") != qp_page:
+    st.session_state["page"] = qp_page
+    _clear_query_params()
+    st.rerun()
+
+current_page = st.session_state["page"]
+
+# ---------------- OPTIONAL: global css ----------------
+# load_css(BASE / "merged-styles.css")
+
+
+if current_page != "home":
+    # load_css(BASE / "merged-styles.css")x
+    st.set_page_config(
+    page_title="BI4BI - EY Landing Page",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+
+
+# ============================================================
+# PAGE 1: HOME (Landing) — HTML Card + Streamlit Begin button ✅
+# ============================================================
+if current_page == "home":
+    # Assets
+    bg_candidates = [BASE / "background.png", BASE.parent / "background.png"]
+    logo_candidates = [BASE / "ey_logo.png", BASE.parent / "ey_logo.png"]
+    bg_path = next((p for p in bg_candidates if p.exists()), None)
+    logo_path = next((p for p in logo_candidates if p.exists()), None)
+
+    if not bg_path or not logo_path:
+        st.error("Missing background.png or ey_logo.png.")
+    else:
+        bg_b64 = get_base64(bg_path)
+        logo_b64 = get_base64(logo_path)
+
+        # ---------- HEADER + PAGE STYLE ----------
+        st.markdown(
+            f"""
+            <style>
+              html, body {{
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 90vh !important;
+                overflow: hidden !important;
+              }}
+
+              /* Hide streamlit chrome */
+              header, footer {{ visibility: hidden !important; }}
+              [data-testid="stToolbar"] {{ display: none !important; }}
+
+              .stApp {{
+                background: url("data:image/png;base64,{bg_b64}") !important;
+              }}
+
+              /* EY Logo */
+              .landing-logo {{
+                    position: fixed;
+                    top: 60px;
+                    right: 60px;
+                    z-index: 9999;
+              }}
+              .landing-logo img {{
+                    width: 140px;
+                    height: auto;
+              }}
+
+              /* Card container */
+              .feature-card-container {{
+                    display: flex;
+                    gap: 22px;
+                    width: 120%;
+                    text-align: justify;
+                    justify-content: center;
+                    margin-top: 2.2cm;
+                    padding-bottom: 3.2cm;
+
+                    margin-left: -8%;
+                    padding-top: 1cm;
+              }}
+
+              .feature-card {{
+                    background: rgba(255, 255, 255, 0.92);
+                    width: 85%;
+                    padding: 26px 22px;
+                    border-radius: 16px;
+                    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+                    font-family: Arial, sans-serif;
+              }}
+
+              .feature-card h4 {{
+                    font-size: 17px;
+                    font-weight: 700;
+                    color: #000;
+              }}
+
+              .feature-card p {{
+                    font-size: 14px;
+                    color: #444;
+                    margin: 0;
+                    line-height: 1.55;
+              }}
+
+              .landing-footer {{
+                margin-top: 1rem;
+                font-size: 12px;
+                color: #999;
+                text-align: center;
+              }}
+            .stButton > button {{
+                background-color: #FFD100 !important;   /* EY Yellow */
+                color: #000 !important;
+                height: 50px !important;
+            }}
+            .stButton > button:hover {{
+                background-color: #FFC000 !important; /* Darker EY Yellow */
+            }}
+            </style>
+
+            <!-- FIXED EY LOGO -->
+            <div class="landing-logo">
+                <img src="data:image/png;base64,{logo_b64}" />
+            </div>
+            
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # ---------- CONTENT AREA ----------
+        left, mid, right = st.columns([0.2, 4, 0.2])
+        with mid:
+
+            # Feature Cards
+            st.markdown(
+                """
+                <div style="text-align: center; margin-top: -1.5rem;">
+                    <div style="font-size: 45px; font-weight: 700; color: #222;">BI4BI</div>
+                </div>
+                <div class="feature-card-container">
+                    <div class="feature-card">
+                        <div style="text-align: center; font-size: 17px; font-weight: 700; color: #000; padding-bottom: 5px;">E2E BI Metadata</div>
+                        <p style="text-align: justify;">Automatically extracts and organizes complete BI metadata across your environment for structured visibility.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div style="text-align: center; font-size: 17px; font-weight: 700; color: #000; padding-bottom: 5px;">Smart Rationalization</div>
+                        <p  style="text-align: justify;">Identifies redundancies, unused components, and optimization opportunities using data‑driven insights.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div style="text-align: center; font-size: 17px; font-weight: 700; color: #000; padding-bottom: 5px;">Accelerated Upgrade</div>
+                        <p style="text-align: justify;">Reduces manual analysis and speeds up BI upgrades with automated, intelligent assessments.</p>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # Begin Button
+            if st.button("Begin", use_container_width=True, key="landing_begin"):
+                st.session_state["page"] = "choose_tool"
+                st.rerun()
+
+            # Footer
+            st.markdown(
+                f"""
+                <div class="landing-footer">
+                    © {datetime.now().year} EYGM Limited. All Rights Reserved.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+# ============================================================
+# PAGE 2: CHOOSE TOOL
+# ============================================================
+elif current_page == "choose_tool":
+    if USE_INTERNAL_BG_AND_LOGO:
+        inject_background()
+        inject_logo()
+
+    st.markdown(
+        f"""
+        <style>
+        html, body{{
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 10vh !important;
+                overflow: hidden !important;
+        }}
+        h1 {{
+            margin-top: -10% !important;}}
+        div[data-testid="stImage"] {{
+            display: flex !important;
+            justify-content: center !important;
+            height: 110px !important;
+        }}
+
+        /* Hide streamlit chrome */
+        header, footer {{ visibility: hidden !important; }}
+        [data-testid="stToolbar"] {{ display: none !important; }}
+
+        div[data-testid="stButton"] {{
+            display: flex !important;
+            justify-content: center !important;
+        }}
+        div[data-testid="stButton"] > button {{
+            min-width: 140px !important;
+            border-radius: 10px !important;
+            background: #ffd54f !important;
+            color: #1a1a1a !important;
+            font-weight: 700 !important;
+            border: none !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        }}
+        div[data-testid="stButton"] > button:hover {{
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    tools = [
+        {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
+        {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png", "adapter_key": None},
+        {"name": "Cognos", "logo": "cognos.png", "adapter_key": None},
+        {"name": "Power BI", "logo": "powerbi.png", "adapter_key": None},
+        {"name": "SAP BusinessObjects", "logo": "sap-bo.png", "adapter_key": None},
+        {"name": "SSRS", "logo": "SSRS.png", "adapter_key": None},
+        {"name": "Tableau", "logo": "tableau.png", "adapter_key": "tableau"},
+    ]
+
+    assets_dir = BASE / "assets"
+
+    if st.session_state.get("coming_soon_tool"):
+        st.info(
+            f"✨ **{st.session_state['coming_soon_tool']}** is on our roadmap. "
+            f"We're working hard to bring it to you soon!"
+        )
+        st.session_state["coming_soon_tool"] = None
+    st.markdown("<h1 style='margin-top: -1rem; padding-top: -1rem; text-align: center;'>Select a BI Environment</h1>", unsafe_allow_html=True)
+    cols = st.columns(3)
+    for idx, tool in enumerate(tools):
+        col = cols[idx % 3]
+        if "tableau" in tool["name"].lower():
+            col = cols[1]  # Center MicroStrategy
+
+        with col:
+            logo_path = assets_dir / tool["logo"]
+            if logo_path.exists():
+                st.image(str(logo_path), width=140)
+            else:
+                st.write(f"Missing logo: {tool['logo']}")
+
+            key_safe = tool["name"].replace(" ", "_").replace("/", "_")
+
+            if tool["adapter_key"]:
+                if st.button("Configure", key=f"btn_select_{key_safe}"):
+                    st.session_state["selected_tool"] = tool["name"]
+                    st.session_state["page"] = "configure"
+                    st.rerun()
+            else:
+                if st.button("Configure", key=f"btn_coming_{key_safe}"):
+                    st.session_state["coming_soon_tool"] = tool["name"]
+                    st.rerun()
+
+    left, _, _ = st.columns(3)
+    with left:
+        if st.button("← Back to Home"):
+            st.session_state["page"] = "home"
+            st.session_state.pop("selected_tool", None)
+            st.rerun()
+
+
+# ============================================================
+# PAGE 3: CONFIGURE
+# ============================================================
+elif current_page == "configure":
+    if USE_INTERNAL_BG_AND_LOGO:
+        inject_background()
+        inject_logo()
+
+    selected_tool = st.session_state.get("selected_tool", "Tableau")
+
+    st.markdown("""
+    <style>
+    html, body, [data-testid="stAppViewContainer"], section.main, .block-container {
+    overflow: hidden !important;
+    }
+    section.main, .block-container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin: 0 !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        height: 100vh !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    try:
+        from frontend.tab_configure_app import render_configure_page
+        render_configure_page(selected_tool)
+    except Exception as e:
+        st.markdown(f"## Configure: **{selected_tool}**")
+        st.warning("Could not load frontend.tab_configure_app.render_configure_page(). Showing fallback.")
+        st.code(str(e))
+        if st.button("⬅ Back to Choose Tool"):
+            st.session_state["page"] = "choose_tool"
+            st.rerun()
+
+
+# ============================================================
+# FALLBACK
+# ============================================================
+else:
+    st.session_state["page"] = "home"
+    st.rerun()
