@@ -242,6 +242,27 @@ if current_page == "home":
               .stButton > button:hover {{
                     background-color: #FFC000 !important;
               }}
+
+              /* Back button — top left, subtle style (consistent theme) */
+              .back-btn-top div[data-testid="stButton"] {{
+                    display: flex !important;
+                    justify-content: flex-start !important;
+              }}
+              .back-btn-top div[data-testid="stButton"] > button {{
+                    background: transparent !important;
+                    color: #222 !important;
+                    font-weight: 600 !important;
+                    border: 1px solid #ccc !important;
+                    box-shadow: none !important;
+                    min-width: auto !important;
+                    padding: 0.3rem 0.9rem !important;
+                    font-size: 0.85rem !important;
+                    border-radius: 8px !important;
+                    height: auto !important;
+              }}
+              .back-btn-top div[data-testid="stButton"] > button:hover {{
+                    background: rgba(0,0,0,0.05) !important;
+              }}
             </style>
 
             <!-- FIXED EY LOGO (top-right) -->
@@ -252,6 +273,13 @@ if current_page == "home":
             """,
             unsafe_allow_html=True,
         )
+
+        # ← Back button at top-left (Home page)
+        st.markdown('<div class="back-btn-top">', unsafe_allow_html=True)
+        if st.button("← Home", key="back_home_landing"):
+            st.session_state["page"] = "home"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # ---------- CONTENT AREA ----------
         left, mid, right = st.columns([0.3, 3.4, 0.3])
@@ -282,7 +310,7 @@ if current_page == "home":
             st.markdown(
                 f"""
                 <div class="landing-footer">
-                    ©️ {datetime.now().year} EYGM Limited. All Rights Reserved.
+                    © {datetime.now().year} EYGM Limited. All Rights Reserved.
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -448,18 +476,53 @@ elif current_page == "configure":
     st.markdown("""
     <style>
     html, body, [data-testid="stAppViewContainer"], section.main, .block-container {
-    overflow: hidden !important;
+        overflow: hidden !important;
     }
     section.main, .block-container {
-        padding-top: 0 !important;
+        padding-top: 0.3rem !important;
         padding-bottom: 0 !important;
         margin: 0 !important;
     }
     [data-testid="stAppViewContainer"] {
         height: 100vh !important;
     }
+    /* Hide streamlit chrome */
+    header, footer { visibility: hidden !important; height: 0 !important; }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+
+    /* Back button — top left, subtle style (same theme as page 2) */
+    .back-btn-top div[data-testid="stButton"] {
+        display: flex !important;
+        justify-content: flex-start !important;
+    }
+    .back-btn-top div[data-testid="stButton"] > button {
+        background: transparent !important;
+        color: #222 !important;
+        font-weight: 600 !important;
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        min-width: auto !important;
+        padding: 0.3rem 0.9rem !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+    }
+    .back-btn-top div[data-testid="stButton"] > button:hover {
+        background: rgba(0,0,0,0.05) !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
     </style>
     """, unsafe_allow_html=True)
+
+    # ← Back button at the TOP LEFT
+    st.markdown('<div class="back-btn-top">', unsafe_allow_html=True)
+    if st.button("← Back", key="back_to_tools"):
+        st.session_state["page"] = "choose_tool"
+        st.session_state.pop("selected_tool", None)
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     try:
         from frontend.tab_configure_app import render_configure_page
@@ -468,9 +531,6 @@ elif current_page == "configure":
         st.markdown(f"## Configure: **{selected_tool}**")
         st.warning("Could not load frontend.tab_configure_app.render_configure_page(). Showing fallback.")
         st.code(str(e))
-        if st.button("⬅ Back to Choose Tool"):
-            st.session_state["page"] = "choose_tool"
-            st.rerun()
 
 
 # ============================================================
