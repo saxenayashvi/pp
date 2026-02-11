@@ -299,12 +299,27 @@ elif current_page == "choose_tool":
     st.markdown(
         f"""
         <style>
-        html, body{{
+        /* Kill scroll — fixed background */
+        html, body {{
                 margin: 0 !important;
                 padding: 0 !important;
-                height: 10vh !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
                 overflow: hidden !important;
         }}
+        .stApp,
+        [data-testid="stAppViewContainer"],
+        section.main,
+        .main .block-container,
+        .block-container {{
+                overflow: hidden !important;
+                max-height: 100vh !important;
+        }}
+        .block-container {{
+                padding-top: 0.5rem !important;
+                padding-bottom: 0 !important;
+        }}
+
         h1 {{
             margin-top: -10% !important;}}
         div[data-testid="stImage"] {{
@@ -314,8 +329,10 @@ elif current_page == "choose_tool":
         }}
 
         /* Hide streamlit chrome */
-        header, footer {{ visibility: hidden !important; }}
+        header, footer {{ visibility: hidden !important; height: 0 !important; }}
         [data-testid="stToolbar"] {{ display: none !important; }}
+        [data-testid="stHeader"] {{ display: none !important; }}
+        [data-testid="stDecoration"] {{ display: none !important; }}
 
         div[data-testid="stButton"] {{
             display: flex !important;
@@ -334,39 +351,10 @@ elif current_page == "choose_tool":
             transform: translateY(-2px) !important;
             box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
         }}
-        /* Back button styling — left-aligned at top */
-        .back-btn-container {{
-            display: flex !important;
-            justify-content: flex-start !important;
-        }}
-        .back-btn-container button {{
-            background: transparent !important;
-            color: #222 !important;
-            font-weight: 600 !important;
-            border: none !important;
-            box-shadow: none !important;
-            min-width: auto !important;
-            padding: 0.3rem 0.8rem !important;
-        }}
-        .back-btn-container button:hover {{
-            background: rgba(0,0,0,0.05) !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }}
         </style>
         """,
         unsafe_allow_html=True
     )
-
-    # ← Back to Home button at the TOP LEFT
-    back_col, _ = st.columns([1, 4])
-    with back_col:
-        st.markdown('<div class="back-btn-container">', unsafe_allow_html=True)
-        if st.button("← Back to Home", key="back_home_top"):
-            st.session_state["page"] = "home"
-            st.session_state.pop("selected_tool", None)
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
     tools = [
         {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
@@ -386,7 +374,7 @@ elif current_page == "choose_tool":
             f"We're working hard to bring it to you soon!"
         )
         st.session_state["coming_soon_tool"] = None
-    st.markdown("<h1 style='margin-top: -1rem; padding-top: -1rem; text-align: center;'>Select a BI Environment</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='margin-top: -1rem; padding-top: -1rem; text-align: center; font-size: 1.8rem;'>Select a BI Environment</h1>", unsafe_allow_html=True)
     cols = st.columns(3)
     for idx, tool in enumerate(tools):
         col = cols[idx % 3]
