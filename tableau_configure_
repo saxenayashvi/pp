@@ -51,8 +51,41 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         token_name = st.text_input('Token name', value=token_name_saved)
         token_secret = st.text_input('Token secret', value=token_secret_saved)
         site_name = st.text_input('Site name', value=site_name_saved)
-        remember = st.checkbox('Remember credentials (stores in Streamlit_application/credentials.csv)')
-        submit = st.form_submit_button('Execute')
+        submit = st.form_submit_button('Save')
+
+    # Test Connection button
+    if st.button('Test Connection'):
+        if server and token_name and token_secret:
+            with st.spinner('Testing connection...'):
+                try:
+                    config = {
+                        'tableau_prod': {
+                            'server': server,
+                            'api_version': api_version,
+                            'personal_access_token_name': token_name,
+                            'personal_access_token_secret': token_secret,
+                            'site_name': site_name,
+                        }
+                    }
+                    adapter_key = selected_tool.lower() if selected_tool else 'tableau'
+                    r = requests.post(f'{BACKEND_URL}/reports/test-connection', json={'adapter': adapter_key, 'config': config}, timeout=30)
+                    r.raise_for_status()
+                    st.success('Connection successful!')
+                except Exception as e:
+                    st.error(f'Connection failed: {e}')
+        else:
+            st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
+
+    # Upload metadata CSV
+    st.markdown("**To upload metadata click here:**")
+    uploaded_file = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
+    if uploaded_file is not None:
+        try:
+            df_upload = pd.read_csv(uploaded_file)
+            st.success(f"Uploaded {uploaded_file.name} — {len(df_upload)} rows")
+            st.dataframe(df_upload.head())
+        except Exception as e:
+            st.error(f"Failed to read CSV: {e}")
 
     if st.button('← Back to Tools'):
         st.session_state['page'] = 'choose_tool'
@@ -71,39 +104,21 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             }
         }
 
-        if remember:
-            try:
-                dfw = pd.DataFrame({
-                    'server_saved': [server],
-                    'api_version_saved': [api_version],
-                    'token_name_saved': [token_name],
-                    'token_secret_saved': [token_secret],
-                    'site_name_saved': [site_name],
-                    'site_url_saved': ['']
-                })
-                os.makedirs(os.path.dirname(cred_path), exist_ok=True)
-                dfw.to_csv(cred_path, index=False)
-                st.success('Credentials saved')
-            except Exception as e:
-                st.error(f'Failed saving credentials: {e}')
-
-        adapter_key = selected_tool.lower() if selected_tool else 'tableau'
-        with st.spinner('Submitting execution to backend...'):
-            try:
-                r = requests.post(f'{BACKEND_URL}/reports/execute', json={'adapter': adapter_key, 'config': config}, timeout=60)
-                r.raise_for_status()
-                st.success('Execution requested successfully')
-                result = r.json()
-                st.json(result)
-
-                # If backend returned file paths, show download links
-                outputs = result.get('outputs', {}) if isinstance(result, dict) else {}
-                for name, path in outputs.items():
-                    if os.path.exists(path):
-                        st.markdown(f"- `{name}`: [Download]({path})")
-
-            except Exception as e:
-                st.error(f'Execution failed: {e}')
+        # Always save credentials on submit
+        try:
+            dfw = pd.DataFrame({
+                'server_saved': [server],
+                'api_version_saved': [api_version],
+                'token_name_saved': [token_name],
+                'token_secret_saved': [token_secret],
+                'site_name_saved': [site_name],
+                'site_url_saved': ['']
+            })
+            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
+            dfw.to_csv(cred_path, index=False)
+            st.success('Credentials saved')
+        except Exception as e:
+            st.error(f'Failed saving credentials: {e}')
 
 
 if __name__ == '__main__':
