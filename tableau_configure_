@@ -31,68 +31,61 @@ def _load_saved_credentials():
 
 def render_configure_page(selected_tool: str = 'Tableau'):
     """Render the configure UI for the given tool inside the current Streamlit page."""
-    st.header(f"Configure {selected_tool}")
 
     cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved = _load_saved_credentials()
-    st.markdown(f"""<style> 
-        html, body, .stApp {{
+
+    # ---------- Page styling ----------
+    st.markdown("""<style>
+        html, body, .stApp {
             margin: 0 !important;
             padding: 0 !important;
             height: 100vh !important;
             overflow: hidden !important;
-    }}
-    
+        }
+        /* Center the header */
+        h2 {
+            text-align: center !important;
+        }
+        /* Style the Save button yellow */
+        div[data-testid="stForm"] button[kind="secondaryFormSubmit"]:first-of-type,
+        div[data-testid="stForm"] button[type="submit"]:first-of-type {
+            background-color: #FFD100 !important;
+            color: #000 !important;
+            border: none !important;
+            font-weight: 700 !important;
+            border-radius: 8px !important;
+            width: 100% !important;
+        }
+        div[data-testid="stForm"] button[kind="secondaryFormSubmit"]:first-of-type:hover,
+        div[data-testid="stForm"] button[type="submit"]:first-of-type:hover {
+            background-color: #FFC000 !important;
+        }
     </style>""", unsafe_allow_html=True)
 
+    # ---------- Header ----------
+    st.markdown(f"<h2 style='text-align:center; margin-bottom:0;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='text-align:center; color:#555; margin-top:0.2rem; margin-bottom:1rem;'>"
+        "Provide Tableau connection details (personal access token).</p>",
+        unsafe_allow_html=True,
+    )
+
+    # ---------- Form ----------
     with st.form('tableau'):
-        st.write('Provide Tableau connection details (personal access token)')
         server = st.text_input('Server', value=server_saved)
         api_version = st.text_input('API version', value=api_version_saved)
         token_name = st.text_input('Token name', value=token_name_saved)
         token_secret = st.text_input('Token secret', value=token_secret_saved)
         site_name = st.text_input('Site name', value=site_name_saved)
-        submit = st.form_submit_button('Save')
 
-    # Test Connection button
-    if st.button('Test Connection'):
-        if server and token_name and token_secret:
-            with st.spinner('Testing connection...'):
-                try:
-                    config = {
-                        'tableau_prod': {
-                            'server': server,
-                            'api_version': api_version,
-                            'personal_access_token_name': token_name,
-                            'personal_access_token_secret': token_secret,
-                            'site_name': site_name,
-                        }
-                    }
-                    adapter_key = selected_tool.lower() if selected_tool else 'tableau'
-                    r = requests.post(f'{BACKEND_URL}/reports/test-connection', json={'adapter': adapter_key, 'config': config}, timeout=30)
-                    r.raise_for_status()
-                    st.success('Connection successful!')
-                except Exception as e:
-                    st.error(f'Connection failed: {e}')
-        else:
-            st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
+        # Save and Test Connection buttons side by side
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            submit = st.form_submit_button('Save', use_container_width=True)
+        with btn_col2:
+            test_conn = st.form_submit_button('Test Connection', use_container_width=True)
 
-    # Upload metadata CSV
-    st.markdown("**To upload metadata click here:**")
-    uploaded_file = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
-    if uploaded_file is not None:
-        try:
-            df_upload = pd.read_csv(uploaded_file)
-            st.success(f"Uploaded {uploaded_file.name} — {len(df_upload)} rows")
-            st.dataframe(df_upload.head())
-        except Exception as e:
-            st.error(f"Failed to read CSV: {e}")
-
-    if st.button('← Back to Tools'):
-        st.session_state['page'] = 'choose_tool'
-        if 'selected_tool' in st.session_state:
-            del st.session_state['selected_tool']
-        st.rerun()
-
+    # ---------- Handle Save ----------
     if submit:
         config = {
             'tableau_prod': {
@@ -103,8 +96,6 @@ def render_configure_page(selected_tool: str = 'Tableau'):
                 'site_name': site_name,
             }
         }
-
-        # Always save credentials on submit
         try:
             dfw = pd.DataFrame({
                 'server_saved': [server],
@@ -119,6 +110,43 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             st.success('Credentials saved')
         except Exception as e:
             st.error(f'Failed saving credentials: {e}')
+
+    # ---------- Handle Test Connection ----------
+    if test_conn:
+        if server and token_name and token_secret:
+            with st.spinner('Testing connection...'):
+                try:
+                    config = {
+                        'tableau_prod': {
+                            'server': server,
+                            'api_version': api_version,
+                            'personal_access_token_name': token_name,
+                            'personal_access_token_secret': token_secret,
+                            'site_name': site_name,
+                        }
+                    }
+                    adapter_key = selected_tool.lower() if selected_tool else 'tableau'
+                    r = requests.post(
+                        f'{BACKEND_URL}/reports/test-connection',
+                        json={'adapter': adapter_key, 'config': config},
+                        timeout=30,
+                    )
+                    r.raise_for_status()
+                    st.success('Connection successful!')
+                except Exception as e:
+                    st.error(f'Connection failed: {e}')
+        else:
+            st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
+
+    # ---------- Upload metadata file ----------
+    uploaded_file = st.file_uploader("Upload metadata file", type=["csv"])
+    if uploaded_file is not None:
+        try:
+            df_upload = pd.read_csv(uploaded_file)
+            st.success(f"Uploaded {uploaded_file.name} — {len(df_upload)} rows")
+            st.dataframe(df_upload.head())
+        except Exception as e:
+            st.error(f"Failed to read CSV: {e}")
 
 
 if __name__ == '__main__':
