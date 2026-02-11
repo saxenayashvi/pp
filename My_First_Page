@@ -140,16 +140,32 @@ if current_page == "home":
         st.markdown(
             f"""
             <style>
+              /* Kill ALL scrollbars and overflow */
               html, body {{
                 margin: 0 !important;
                 padding: 0 !important;
                 height: 100vh !important;
+                max-height: 100vh !important;
                 overflow: hidden !important;
+              }}
+              .stApp,
+              [data-testid="stAppViewContainer"],
+              section.main,
+              .main .block-container,
+              .block-container {{
+                overflow: hidden !important;
+                max-height: 100vh !important;
+              }}
+              .block-container {{
+                padding-top: 1rem !important;
+                padding-bottom: 0 !important;
               }}
 
               /* Hide streamlit chrome */
-              header, footer {{ visibility: hidden !important; }}
+              header, footer {{ visibility: hidden !important; height: 0 !important; }}
               [data-testid="stToolbar"] {{ display: none !important; }}
+              [data-testid="stHeader"] {{ display: none !important; }}
+              [data-testid="stDecoration"] {{ display: none !important; }}
 
               .stApp {{
                 background: url("data:image/png;base64,{bg_b64}") no-repeat center center !important;
@@ -161,10 +177,10 @@ if current_page == "home":
                 box-shadow: none !important;
               }}
 
-              /* EY Logo — fixed bottom-right */
+              /* EY Logo — fixed TOP-right */
               .landing-logo {{
                     position: fixed;
-                    bottom: 30px;
+                    top: 28px;
                     right: 40px;
                     z-index: 9999;
               }}
@@ -173,50 +189,51 @@ if current_page == "home":
                     height: auto;
               }}
 
-              /* Landing content wrapper — vertically centered */
+              /* Landing content wrapper — vertically centered, no overflow */
               .landing-content {{
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    min-height: 78vh;
+                    height: 68vh;
                     padding: 0 20px;
               }}
 
               /* Title */
               .landing-title {{
-                    font-size: 52px;
+                    font-size: 48px;
                     font-weight: 800;
                     color: #1a1a1a;
                     font-family: 'EYInterstate', Arial, sans-serif;
-                    margin-bottom: 28px;
+                    margin-bottom: 22px;
                     letter-spacing: 1px;
               }}
 
               /* Description paragraph */
               .landing-desc {{
-                    font-size: 15.5px;
+                    font-size: 15px;
                     color: #333;
                     font-family: 'EYInterstate', Arial, sans-serif;
-                    line-height: 1.7;
+                    line-height: 1.65;
                     text-align: justify;
-                    max-width: 620px;
-                    margin-bottom: 32px;
+                    max-width: 600px;
+                    margin-bottom: 0;
               }}
 
               /* Footer */
               .landing-footer {{
-                    font-size: 12px;
+                    font-size: 11px;
                     color: #888;
                     text-align: center;
-                    margin-top: 12px;
+                    margin-top: 6px;
+                    padding-bottom: 0;
               }}
 
               /* Begin button */
               .stButton > button {{
                     background-color: #FFD100 !important;
                     color: #000 !important;
-                    height: 50px !important;
+                    height: 46px !important;
                     font-size: 16px !important;
                     font-weight: 700 !important;
                     border: none !important;
@@ -227,7 +244,7 @@ if current_page == "home":
               }}
             </style>
 
-            <!-- FIXED EY LOGO (bottom-right) -->
+            <!-- FIXED EY LOGO (top-right) -->
             <div class="landing-logo">
                 <img src="data:image/png;base64,{logo_b64}" />
             </div>
