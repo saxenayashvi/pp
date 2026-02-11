@@ -243,26 +243,6 @@ if current_page == "home":
                     background-color: #FFC000 !important;
               }}
 
-              /* Back button — top left, subtle style (consistent theme) */
-              .back-btn-top div[data-testid="stButton"] {{
-                    display: flex !important;
-                    justify-content: flex-start !important;
-              }}
-              .back-btn-top div[data-testid="stButton"] > button {{
-                    background: transparent !important;
-                    color: #222 !important;
-                    font-weight: 600 !important;
-                    border: 1px solid #ccc !important;
-                    box-shadow: none !important;
-                    min-width: auto !important;
-                    padding: 0.3rem 0.9rem !important;
-                    font-size: 0.85rem !important;
-                    border-radius: 8px !important;
-                    height: auto !important;
-              }}
-              .back-btn-top div[data-testid="stButton"] > button:hover {{
-                    background: rgba(0,0,0,0.05) !important;
-              }}
             </style>
 
             <!-- FIXED EY LOGO (top-right) -->
@@ -273,13 +253,6 @@ if current_page == "home":
             """,
             unsafe_allow_html=True,
         )
-
-        # ← Back button at top-left (Home page)
-        st.markdown('<div class="back-btn-top">', unsafe_allow_html=True)
-        if st.button("← Home", key="back_home_landing"):
-            st.session_state["page"] = "home"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
         # ---------- CONTENT AREA ----------
         left, mid, right = st.columns([0.3, 3.4, 0.3])
@@ -380,43 +353,43 @@ elif current_page == "choose_tool":
             box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
         }}
 
-        /* Back button — top left, subtle style */
-        .back-btn-top div[data-testid="stButton"] {{
-            justify-content: flex-start !important;
-        }}
-        .back-btn-top div[data-testid="stButton"] > button {{
-            background: transparent !important;
-            color: #222 !important;
-            font-weight: 600 !important;
-            border: 1px solid #ccc !important;
-            box-shadow: none !important;
-            min-width: auto !important;
-            padding: 0.3rem 0.9rem !important;
-            font-size: 0.85rem !important;
-            border-radius: 8px !important;
-        }}
-        .back-btn-top div[data-testid="stButton"] > button:hover {{
-            background: rgba(0,0,0,0.05) !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }}
-
         /* Center the tool grid columns content */
         [data-testid="stVerticalBlock"] {{
             text-align: center;
         }}
+
+        /* Fixed back button — top left corner */
+        .fixed-back-btn {{
+            position: fixed;
+            top: 18px;
+            left: 24px;
+            z-index: 99999;
+        }}
+        .fixed-back-btn a {{
+            display: inline-block;
+            background: rgba(255,255,255,0.85);
+            color: #222;
+            font-weight: 600;
+            font-size: 0.85rem;
+            font-family: Arial, sans-serif;
+            padding: 0.35rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }}
+        .fixed-back-btn a:hover {{
+            background: rgba(255,255,255,1);
+        }}
         </style>
+
+        <!-- Fixed Back Button — top left -->
+        <div class="fixed-back-btn">
+            <a href="?page=home" target="_self">← Back to Home</a>
+        </div>
         """,
         unsafe_allow_html=True
     )
-
-    # ← Back to Home button at the TOP LEFT
-    st.markdown('<div class="back-btn-top">', unsafe_allow_html=True)
-    if st.button("← Back to Home", key="back_home_top"):
-        st.session_state["page"] = "home"
-        st.session_state.pop("selected_tool", None)
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
     tools = [
         {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
@@ -492,37 +465,36 @@ elif current_page == "configure":
     [data-testid="stHeader"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
 
-    /* Back button — top left, subtle style (same theme as page 2) */
-    .back-btn-top div[data-testid="stButton"] {
-        display: flex !important;
-        justify-content: flex-start !important;
+    /* Fixed back button — top left corner */
+    .fixed-back-btn {
+        position: fixed;
+        top: 18px;
+        left: 24px;
+        z-index: 99999;
     }
-    .back-btn-top div[data-testid="stButton"] > button {
-        background: transparent !important;
-        color: #222 !important;
-        font-weight: 600 !important;
-        border: 1px solid #ccc !important;
-        box-shadow: none !important;
-        min-width: auto !important;
-        padding: 0.3rem 0.9rem !important;
-        font-size: 0.85rem !important;
-        border-radius: 8px !important;
+    .fixed-back-btn a {
+        display: inline-block;
+        background: rgba(255,255,255,0.85);
+        color: #222;
+        font-weight: 600;
+        font-size: 0.85rem;
+        font-family: Arial, sans-serif;
+        padding: 0.35rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background 0.15s ease;
     }
-    .back-btn-top div[data-testid="stButton"] > button:hover {
-        background: rgba(0,0,0,0.05) !important;
-        transform: none !important;
-        box-shadow: none !important;
+    .fixed-back-btn a:hover {
+        background: rgba(255,255,255,1);
     }
     </style>
-    """, unsafe_allow_html=True)
 
-    # ← Back button at the TOP LEFT
-    st.markdown('<div class="back-btn-top">', unsafe_allow_html=True)
-    if st.button("← Back", key="back_to_tools"):
-        st.session_state["page"] = "choose_tool"
-        st.session_state.pop("selected_tool", None)
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    <!-- Fixed Back Button — top left -->
+    <div class="fixed-back-btn">
+        <a href="?page=choose_tool" target="_self">← Back</a>
+    </div>
+    """, unsafe_allow_html=True)
 
     try:
         from frontend.tab_configure_app import render_configure_page
