@@ -196,6 +196,7 @@ if current_page == "home":
                     align-items: center;
                     justify-content: center;
                     height: 68vh;
+                    gap : 65px;
                     padding: 0 20px;
               }}
 
@@ -263,11 +264,11 @@ if current_page == "home":
                 <div class="landing-content">
                     <div class="landing-title">BI4BI</div>
                     <div class="landing-desc">
-                        The <strong>BI4BI</strong> &ndash; the rationalization tool/accelerator that is designed to
+                        The <strong>BI4BI</strong> &ndash; the rationalization tool that is designed to
                         provide EY's clients a suite of BI rationalization solution. The tool can provide
                         end-to-end BI metadata with an organized view and suggest the possible
                         rationalization based on each client's BI environment to reduce manual
-                        analysis of the BI environment for BI modernization or upgrade.
+                        analysis of the BI environment for the BI modernization .
                     </div>
                 </div>
                 """,
@@ -319,6 +320,7 @@ elif current_page == "choose_tool":
         .block-container {{
                 padding-top: 0.3rem !important;
                 padding-bottom: 0 !important;
+                margin-top: 50px !important;
         }}
 
         div[data-testid="stImage"] {{
@@ -355,50 +357,55 @@ elif current_page == "choose_tool":
 
         /* Center the tool grid columns content */
         [data-testid="stVerticalBlock"] {{
-            text-align: center;
+           
         }}
 
         /* Fixed back button — top left corner */
         .fixed-back-btn {{
             position: fixed;
-            top: 18px;
+            top: 30px;
             left: 24px;
             z-index: 99999;
         }}
         .fixed-back-btn a {{
             display: inline-block;
-            background: rgba(255,255,255,0.85);
-            color: #222;
-            font-weight: 600;
-            font-size: 0.85rem;
+            background: WHITE;    /* SAME as Configure button */
+            color: #1a1a1a !important;         /* SAME text color */
+            font-weight: 700 !important;       /* SAME bold style */
+            font-size: 1.7rem !important;
             font-family: Arial, sans-serif;
-            padding: 0.35rem 1rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: background 0.15s ease;
+            padding: 0.45rem 1.2rem !important;
+            border-radius: 10px !important;    /* SAME rounded corners */
+            text-decoration: none !important;
+            border: none !important;
+            min-width: 140px !important;       /* EXACT width of Configure button */
+            text-align: center !important;
+
+            transition: transform 0.15s ease,
+                        box-shadow 0.15s ease !important;
         }}
         .fixed-back-btn a:hover {{
-            background: rgba(255,255,255,1);
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
         }}
         </style>
 
         <!-- Fixed Back Button — top left -->
         <div class="fixed-back-btn">
-            <a href="?page=home" target="_self">← Back to Home</a>
+            <a href="?page=home" target="_self">BI4BI</a>
         </div>
         """,
         unsafe_allow_html=True
     )
 
     tools = [
+        {"name": "Tableau", "logo": "tableau.png", "adapter_key": "tableau"},
+         {"name": "Cognos", "logo": "cognos.png", "adapter_key": None},
         {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
-        {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png", "adapter_key": None},
-        {"name": "Cognos", "logo": "cognos.png", "adapter_key": None},
         {"name": "Power BI", "logo": "powerbi.png", "adapter_key": None},
         {"name": "SAP BusinessObjects", "logo": "sap-bo.png", "adapter_key": None},
         {"name": "SSRS", "logo": "SSRS.png", "adapter_key": None},
-        {"name": "Tableau", "logo": "tableau.png", "adapter_key": "tableau"},
+         {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png", "adapter_key": None},
     ]
 
     assets_dir = BASE / "assets"
@@ -474,7 +481,7 @@ elif current_page == "configure":
     }
     .fixed-back-btn a {
         display: inline-block;
-        background: rgba(255,255,255,0.85);
+        background:  #ffd54f;
         color: #222;
         font-weight: 600;
         font-size: 0.85rem;
@@ -486,7 +493,8 @@ elif current_page == "configure":
         transition: background 0.15s ease;
     }
     .fixed-back-btn a:hover {
-        background: rgba(255,255,255,1);
+        transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
     }
     </style>
 
