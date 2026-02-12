@@ -69,7 +69,7 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         }
         .fixed-back-btn a {
             display: inline-block;
-            background: rgba(255,255,255,0.85);
+            background:  #ffd54f;
             color: #222;
             font-weight: 600;
             font-size: 0.85rem;
@@ -81,14 +81,11 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             transition: background 0.15s ease;
         }
         .fixed-back-btn a:hover {
-            background: rgba(255,255,255,1);
+           transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
         }
     </style>
 
-    <!-- Fixed Back Button — top left -->
-    <div class="fixed-back-btn">
-        <a href="?page=choose_tool" target="_self">← Back</a>
-    </div>
     """, unsafe_allow_html=True)
 
     # ---------- Header ----------
