@@ -46,50 +46,60 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         h2 {
             text-align: center !important;
         }
-        /* Style the Test Connection button yellow */
-        button[key="test_conn_btn"] {
+        
+        /* Style all buttons with yellow theme */
+        .stButton > button {
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1rem !important;
+        }
+        
+        /* Test Connection button - yellow */
+        div[data-testid="column"]:has(button[kind="primary"]) button,
+        button[kind="primary"] {
             background-color: #FFD100 !important;
             color: #000 !important;
             border: none !important;
-            font-weight: 700 !important;
-            border-radius: 8px !important;
         }
-        button[key="test_conn_btn"]:hover {
+        
+        div[data-testid="column"]:has(button[kind="primary"]) button:hover,
+        button[kind="primary"]:hover {
             background-color: #FFC000 !important;
         }
-        /* Style the Save button yellow */
-        button[key="save_btn"] {
+        
+        /* Save button - yellow */
+        div.stButton:has(button p:contains("Save")) button {
             background-color: #FFD100 !important;
             color: #000 !important;
             border: none !important;
-            font-weight: 700 !important;
-            border-radius: 8px !important;
         }
-        button[key="save_btn"]:hover {
+        
+        div.stButton:has(button p:contains("Save")) button:hover {
             background-color: #FFC000 !important;
         }
-        /* Style the Upload button yellow */
-        button[key="upload_btn"] {
+        
+        /* Upload button - yellow */
+        div.stButton:has(button p:contains("Upload")) button {
             background-color: #FFD100 !important;
             color: #000 !important;
             border: none !important;
-            font-weight: 700 !important;
-            border-radius: 8px !important;
         }
-        button[key="upload_btn"]:hover {
+        
+        div.stButton:has(button p:contains("Upload")) button:hover {
             background-color: #FFC000 !important;
         }
-        /* Style the Cancel button */
-        button[key="cancel_btn"] {
-            background-color: #f0f0f0 !important;
+        
+        /* Cancel button - grey */
+        div.stButton:has(button p:contains("Cancel")) button {
+            background-color: #f5f5f5 !important;
             color: #666 !important;
             border: 1px solid #ddd !important;
-            font-weight: 600 !important;
-            border-radius: 8px !important;
         }
-        button[key="cancel_btn"]:hover {
+        
+        div.stButton:has(button p:contains("Cancel")) button:hover {
             background-color: #e0e0e0 !important;
         }
+        
         /* Fixed back button — top left corner */
         .fixed-back-btn {
             position: fixed;
@@ -126,17 +136,17 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         unsafe_allow_html=True,
     )
 
-    # ---------- Form ----------
-    server = st.text_input('Server', value=server_saved)
+    # ---------- Input Fields ----------
+    server = st.text_input('Server', value=server_saved if server_saved else '')
     api_version = st.text_input('API version', value=api_version_saved)
-    token_name = st.text_input('Token name', value=token_name_saved)
-    token_secret = st.text_input('Token secret', value=token_secret_saved)
+    token_name = st.text_input('Token name', value=token_name_saved if token_name_saved else '')
+    token_secret = st.text_input('Token secret', value=token_secret_saved if token_secret_saved else '', type='password')
     site_name = st.text_input('Site name', value=site_name_saved)
 
-    # Test Connection button - centered
+    # ---------- Test Connection button (centered) ----------
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        test_conn = st.button('Test Connection', use_container_width=True, key='test_conn_btn')
+        test_conn = st.button('Test Connection', use_container_width=True, type='primary')
 
     # ---------- Handle Test Connection ----------
     if test_conn:
@@ -166,12 +176,13 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
 
     # ---------- Upload metadata file ----------
+    st.markdown("<div style='margin-top:2rem;'></div>", unsafe_allow_html=True)
     st.markdown(
-        "<div style='margin-top:24px; margin-bottom:8px; font-weight:600; color:#1a1a1a;'>Upload metadata file:</div>",
+        "<div style='margin-bottom:8px; font-weight:600; color:#1a1a1a;'>Upload metadata file:</div>",
         unsafe_allow_html=True
     )
 
-    # File uploader with custom styling
+    # File uploader with Upload button
     col1, col2 = st.columns([3, 1])
     with col1:
         uploaded_file = st.file_uploader(
@@ -181,28 +192,9 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             label_visibility="collapsed"
         )
     with col2:
-        upload_btn = st.button('Upload', use_container_width=True, key='upload_btn')
+        upload_btn = st.button('Upload', use_container_width=True)
 
-    # CSS override for file uploader styling
-    st.markdown("""
-    <style>
-    /* Style the file uploader */
-    div[data-testid="stFileUploader"] div:has(input#metadata_csv) 
-      [data-testid="stFileUploadDropzone"] {
-        border-radius: 10px !important;
-        border: 1px dashed #ccc !important;
-        background: #fafafa !important;
-        padding: 1rem !important;
-    }
-    
-    div[data-testid="stFileUploader"] div:has(input#metadata_csv) 
-      [data-testid="stFileUploadDropzone"] p {
-        font-size: 0.9rem !important;
-        color: #666 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
+    # Handle file upload
     if uploaded_file is not None:
         try:
             df_upload = pd.read_csv(uploaded_file)
@@ -213,23 +205,15 @@ def render_configure_page(selected_tool: str = 'Tableau'):
 
     # ---------- Save and Cancel buttons at bottom ----------
     st.markdown("<div style='margin-top:2rem;'></div>", unsafe_allow_html=True)
-    btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 1])
-    with btn_col1:
-        save_btn = st.button('Save', use_container_width=True, key='save_btn', type='primary')
-    with btn_col2:
-        cancel_btn = st.button('Cancel', use_container_width=True, key='cancel_btn')
+    
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        save_btn = st.button('Save', use_container_width=True)
+    with col2:
+        cancel_btn = st.button('Cancel', use_container_width=True)
 
     # Handle Save button
     if save_btn:
-        config = {
-            'tableau_prod': {
-                'server': server,
-                'api_version': api_version,
-                'personal_access_token_name': token_name,
-                'personal_access_token_secret': token_secret,
-                'site_name': site_name,
-            }
-        }
         try:
             dfw = pd.DataFrame({
                 'server_saved': [server],
@@ -248,7 +232,6 @@ def render_configure_page(selected_tool: str = 'Tableau'):
     # Handle Cancel button
     if cancel_btn:
         st.info('Configuration cancelled')
-
 
 
 if __name__ == '__main__':
