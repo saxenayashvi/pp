@@ -107,9 +107,9 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         # Save and Test Connection buttons side by side
         btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
-            submit = st.form_submit_button('Save', use_container_width=True)
+            submit = st.form_submit_button('Test Connection', use_container_width=True)
         with btn_col2:
-            test_conn = st.form_submit_button('Test Connection', use_container_width=True)
+            test_conn = st.form_submit_button('Save', use_container_width=True)
 
     # ---------- Handle Save ----------
     if submit:
@@ -165,17 +165,76 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
 
     # ---------- Upload metadata file ----------
-    uploaded_file = st.file_uploader("Upload metadata file", type=["csv"])
-    if uploaded_file is not None:
-        try:
-            df_upload = pd.read_csv(uploaded_file)
-            st.success(f"Uploaded {uploaded_file.name} — {len(df_upload)} rows")
-            st.dataframe(df_upload.head())
-        except Exception as e:
-            st.error(f"Failed to read CSV: {e}")
+    # ---------- Upload metadata file ----------
+# (1) Optional: show a clearer section title (keeps your current phrasing)
+st.markdown(
+    "<div style='margin-top:6px; font-weight:600; color:#1a1a1a;'>Upload metadata file</div>",
+    unsafe_allow_html=True
+)
+
+# (2) Keep Streamlit's uploader (drag & drop + open dialog), just hide the label for cleaner UI
+uploaded_file = st.file_uploader(
+    "Upload metadata file",
+    type=["csv"],
+    key="metadata_csv",
+    label_visibility="collapsed"
+)
+
+# (3) CSS override: rename the built-in 'Browse files' button text to 'Upload file'
+st.markdown("""
+<style>
+/* Scope to this uploader only (by its key) */
+div[data-testid="stFileUploader"] div:has(input#metadata_csv) 
+  [data-testid="stFileUploadDropzone"] [data-testid="stBaseButton-secondary"] > div {
+    /* Hide the original 'Browse files' text node */
+    color: transparent !important;
+}
+
+/* Inject our replacement text */
+div[data-testid="stFileUploader"] div:has(input#metadata_csv) 
+  [data-testid="stFileUploadDropzone"] [data-testid="stBaseButton-secondary"] > div::after {
+    content: "Upload file";
+    color: #1a1a1a;                 /* text color */
+    font-weight: 600;
+    letter-spacing: .2px;
+}
+
+/* Optional: button styling to match your yellow theme (comment out if not needed) */
+div[data-testid="stFileUploader"] div:has(input#metadata_csv)
+  [data-testid="stFileUploadDropzone"] [data-testid="stBaseButton-secondary"] {
+    background: white !important;   /* keep white to contrast yellow band */
+    border: 1px solid #e6e6e6 !important;
+    border-radius: 8px !important;
+}
+div[data-testid="stFileUploader"] div:has(input#metadata_csv)
+  [data-testid="stFileUploadDropzone"] {
+    border-radius: 10px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# (4) Your original CSV handling remains unchanged
+if uploaded_file is not None:
+    try:
+        df_upload = pd.read_csv(uploaded_file)
+        st.success(f"Uploaded {uploaded_file.name} — {len(df_upload)} rows")
+        st.dataframe(df_upload.head())
+    except Exception as e:
+        st.error(f"Failed to read CSV: {e}")
+
 
 
 if __name__ == '__main__':
     # Allow running this file directly for quick debugging
     st.set_page_config(page_title='bi4bi - Configure (debug)', layout='centered')
     render_configure_page('Tableau')
+
+
+
+
+
+
+
+
+
+    
