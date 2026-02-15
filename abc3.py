@@ -36,10 +36,6 @@ def render_configure_page(selected_tool: str = 'Tableau'):
 
     # ---------- Page styling ----------
     st.markdown("""<style>
-        html, body, .stApp {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
         /* Center the header */
         h2 {
             text-align: center !important;
@@ -49,22 +45,33 @@ def render_configure_page(selected_tool: str = 'Tableau'):
         .stButton > button {
             border-radius: 8px !important;
             font-weight: 600 !important;
-            padding: 0.5rem 1rem !important;
+            padding: 0.5rem 1.5rem !important;
             transition: all 0.2s ease !important;
+            font-size: 0.95rem !important;
         }
         
-        /* Yellow buttons (Test Connection, Upload, Save) */
-        button[kind="primary"],
-        .stButton > button[kind="primary"] {
+        /* Yellow buttons (Test Connection, Upload, Save) - using primary type */
+        button[kind="primary"] {
             background-color: #FFD100 !important;
             color: #000 !important;
             border: none !important;
         }
         
-        button[kind="primary"]:hover,
-        .stButton > button[kind="primary"]:hover {
+        button[kind="primary"]:hover {
             background-color: #FFC000 !important;
             box-shadow: 0 2px 8px rgba(255, 209, 0, 0.3) !important;
+        }
+        
+        /* Cancel button - secondary type with grey styling */
+        button[kind="secondary"] {
+            background-color: #f5f5f5 !important;
+            color: #666 !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        button[kind="secondary"]:hover {
+            background-color: #e8e8e8 !important;
+            color: #444 !important;
         }
         
         /* Fixed back button — top left corner */
@@ -91,6 +98,11 @@ def render_configure_page(selected_tool: str = 'Tableau'):
            transform: translateY(-2px) !important;
             box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
         }
+        
+        /* Ensure proper spacing and visibility */
+        .main .block-container {
+            padding-bottom: 5rem !important;
+        }
     </style>
 
     """, unsafe_allow_html=True)
@@ -98,7 +110,7 @@ def render_configure_page(selected_tool: str = 'Tableau'):
     # ---------- Header ----------
     st.markdown(f"<h2 style='text-align:center; margin-bottom:0;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
     st.markdown(
-        "<p style='text-align:center; color:#555; margin-top:0.2rem; margin-bottom:1rem;'>"
+        "<p style='text-align:center; color:#555; margin-top:0.2rem; margin-bottom:1.5rem;'>"
         "Provide Tableau connection details (personal access token).</p>",
         unsafe_allow_html=True,
     )
@@ -111,6 +123,7 @@ def render_configure_page(selected_tool: str = 'Tableau'):
     site_name = st.text_input('Site name', value=site_name_saved)
 
     # ---------- Test Connection button (centered) ----------
+    st.markdown("<div style='margin-top:1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         test_conn = st.button('Test Connection', use_container_width=True, type='primary', key='test_connection_btn')
@@ -143,14 +156,14 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
 
     # ---------- Upload metadata file ----------
-    st.markdown("<div style='margin-top:2rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top:2.5rem;'></div>", unsafe_allow_html=True)
     st.markdown(
-        "<div style='margin-bottom:8px; font-weight:600; color:#1a1a1a;'>Upload metadata file:</div>",
+        "<div style='margin-bottom:10px; font-weight:600; color:#1a1a1a; font-size:0.95rem;'>Upload rectudata file:</div>",
         unsafe_allow_html=True
     )
 
     # File uploader with Upload button
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([2.5, 1])
     with col1:
         uploaded_file = st.file_uploader(
             "Upload metadata file",
@@ -171,16 +184,16 @@ def render_configure_page(selected_tool: str = 'Tableau'):
             st.error(f"Failed to read CSV: {e}")
 
     # ---------- Save and Cancel buttons at bottom ----------
-    st.markdown("<div style='margin-top:3rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top:2.5rem; margin-bottom:1rem;'></div>", unsafe_allow_html=True)
     
-    # Create 3 columns with Save and Cancel buttons
-    col1, col2, col3, col4 = st.columns([1.5, 1, 1, 1.5])
+    # Create columns for Save and Cancel buttons
+    col1, col2, col3, col4, col5 = st.columns([1.2, 0.8, 0.3, 0.8, 1.2])
     
     with col2:
         save_btn = st.button('Save', use_container_width=True, type='primary', key='save_config_btn')
     
-    with col3:
-        cancel_btn = st.button('Cancel', use_container_width=True, key='cancel_config_btn')
+    with col4:
+        cancel_btn = st.button('Cancel', use_container_width=True, type='secondary', key='cancel_config_btn')
 
     # Handle Save button
     if save_btn:
@@ -203,8 +216,8 @@ def render_configure_page(selected_tool: str = 'Tableau'):
     if cancel_btn:
         st.info('Configuration cancelled')
 
-    # Add some bottom spacing
-    st.markdown("<div style='margin-bottom:2rem;'></div>", unsafe_allow_html=True)
+    # Add bottom spacing to ensure buttons are visible
+    st.markdown("<div style='height:3rem;'></div>", unsafe_allow_html=True)
 
 
 if __name__ == '__main__':
