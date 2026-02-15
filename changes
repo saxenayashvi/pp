@@ -1,0 +1,137 @@
+# ============================================================
+# PAGE 2: CHOOSE TOOL
+# ============================================================
+elif current_page == "choose_tool":
+    if USE_INTERNAL_BG_AND_LOGO:
+        inject_background()
+        inject_logo()
+
+    st.markdown(
+        """
+        <style>
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+        }
+
+        .block-container {
+            padding-top: 1.5rem !important;
+            margin-top: 60px !important;
+        }
+
+        header, footer { visibility: hidden !important; height: 0 !important; }
+        [data-testid="stToolbar"] { display: none !important; }
+        [data-testid="stHeader"] { display: none !important; }
+
+        div[data-testid="stImage"] {
+            display: flex !important;
+            justify-content: center !important;
+            margin-bottom: 10px !important;
+        }
+
+        div[data-testid="stButton"] {
+            display: flex !important;
+            justify-content: center !important;
+        }
+
+        div[data-testid="stButton"] > button {
+            min-width: 140px !important;
+            border-radius: 10px !important;
+            background: #ffd54f !important;
+            color: #1a1a1a !important;
+            font-weight: 700 !important;
+            border: none !important;
+        }
+
+        .fixed-back-btn {
+            position: fixed;
+            top: 28px;
+            left: 40px;
+            z-index: 9999;
+        }
+
+        .fixed-back-btn a {
+            display: inline-block;
+            background: white;
+            color: #1a1a1a !important;
+            font-weight: 700 !important;
+            font-size: 1.4rem !important;
+            padding: 0.4rem 1.2rem !important;
+            border-radius: 10px !important;
+            text-decoration: none !important;
+            min-width: 140px !important;
+            text-align: center !important;
+        }
+
+        </style>
+
+        <div class="fixed-back-btn">
+            <a href="?page=home" target="_self">BI4BI</a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<h2 style='text-align:center; margin-bottom:40px;'>Select a BI Environment</h2>",
+        unsafe_allow_html=True
+    )
+
+    tools = [
+        {"name": "Tableau", "logo": "tableau.png", "adapter_key": "tableau"},
+        {"name": "Cognos", "logo": "cognos.png", "adapter_key": None},
+        {"name": "Power BI", "logo": "powerbi.png", "adapter_key": None},
+        {"name": "SQL Server", "logo": "SSRS.png", "adapter_key": None},
+        {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png", "adapter_key": None},
+        {"name": "SAP BusinessObjects", "logo": "sap-bo.png", "adapter_key": None},
+        {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
+    ]
+
+    assets_dir = BASE / "assets"
+
+    # ---------- FIRST ROW (4 tools) ----------
+    row1 = st.columns(4)
+
+    for i in range(4):
+        tool = tools[i]
+        with row1[i]:
+            logo_path = assets_dir / tool["logo"]
+            if logo_path.exists():
+                st.image(str(logo_path), width=120)
+
+            key_safe = tool["name"].replace(" ", "_")
+
+            if tool["adapter_key"]:
+                if st.button("Configure", key=f"btn_{key_safe}"):
+                    st.session_state["selected_tool"] = tool["name"]
+                    st.session_state["page"] = "configure"
+                    st.rerun()
+            else:
+                if st.button("Configure", key=f"btn_{key_safe}_coming"):
+                    st.session_state["coming_soon_tool"] = tool["name"]
+                    st.rerun()
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # ---------- SECOND ROW (3 tools centered) ----------
+    row2 = st.columns([1, 1, 1, 1, 1])
+
+    for idx, tool in enumerate(tools[4:]):
+        with row2[idx + 1]:
+            logo_path = assets_dir / tool["logo"]
+            if logo_path.exists():
+                st.image(str(logo_path), width=120)
+
+            key_safe = tool["name"].replace(" ", "_")
+
+            if tool["adapter_key"]:
+                if st.button("Configure", key=f"btn_{key_safe}2"):
+                    st.session_state["selected_tool"] = tool["name"]
+                    st.session_state["page"] = "configure"
+                    st.rerun()
+            else:
+                if st.button("Configure", key=f"btn_{key_safe}_coming2"):
+                    st.session_state["coming_soon_tool"] = tool["name"]
+                    st.rerun()
