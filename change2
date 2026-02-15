@@ -1,4 +1,66 @@
-import os
+# ============================================================
+# PAGE 3: CONFIGURE
+# ============================================================
+elif current_page == "configure":
+    if USE_INTERNAL_BG_AND_LOGO:
+        inject_background()
+        inject_logo()
+
+    selected_tool = st.session_state.get("selected_tool", "Tableau")
+
+    st.markdown("""
+    <style>
+    html, body {
+        overflow: hidden !important;
+    }
+
+    /* Remove Streamlit chrome */
+    header, footer { visibility: hidden !important; height: 0 !important; }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+
+    .block-container {
+        padding-top: 80px !important;
+    }
+
+    /* Top-left BI4BI button (like choose tool page) */
+    .fixed-home-btn {
+        position: fixed;
+        top: 28px;
+        left: 40px;
+        z-index: 9999;
+    }
+
+    .fixed-home-btn a {
+        display: inline-block;
+        background: white;
+        color: #1a1a1a !important;
+        font-weight: 700 !important;
+        font-size: 1.4rem !important;
+        padding: 0.4rem 1.2rem !important;
+        border-radius: 10px !important;
+        text-decoration: none !important;
+        min-width: 140px !important;
+        text-align: center !important;
+    }
+
+    </style>
+
+    <div class="fixed-home-btn">
+        <a href="?page=home" target="_self">BI4BI</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    from frontend.tab_configure_app import render_configure_page
+    render_configure_page(selected_tool)
+
+
+
+
+
+
+tab_configure_app.py import os
 import streamlit as st
 import requests
 import pandas as pd
@@ -7,76 +69,68 @@ from core.config import BACKEND_URL, CREDENTIALS_PATH
 
 def _load_saved_credentials():
     cred_path = os.path.abspath(CREDENTIALS_PATH)
-    server_saved = None
-    api_version_saved = '3.17'
-    token_name_saved = None
-    token_secret_saved = None
-    site_name_saved = ''
+    server_saved = ""
+    api_version_saved = "3.17"
+    token_name_saved = ""
+    token_secret_saved = ""
+    site_name_saved = ""
 
     if os.path.exists(cred_path):
         try:
             df = pd.read_csv(cred_path)
             row = df.iloc[0]
-            server_saved = row.get('server_saved')
-            api_version_saved = row.get('api_version_saved') or api_version_saved
-            token_name_saved = row.get('token_name_saved')
-            token_secret_saved = row.get('token_secret_saved')
-            site_name_saved = row.get('site_name_saved') or site_name_saved
-        except Exception:
+            server_saved = row.get('server_saved', "")
+            api_version_saved = row.get('api_version_saved', "3.17")
+            token_name_saved = row.get('token_name_saved', "")
+            token_secret_saved = row.get('token_secret_saved', "")
+            site_name_saved = row.get('site_name_saved', "")
+        except:
             pass
 
     return cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved
 
 
-def render_configure_page(selected_tool: str = 'Tableau'):
+def render_configure_page(selected_tool: str = "Tableau"):
 
     cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved = _load_saved_credentials()
 
-    # ---------------- UI STYLING ----------------
+    # ---------------- STYLING ----------------
     st.markdown("""
     <style>
-    /* Center card */
+
     .config-card {
         background: rgba(255,255,255,0.95);
-        padding: 35px;
-        border-radius: 14px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.08);
         width: 520px;
         margin: auto;
     }
 
     .upload-section {
         width: 520px;
-        margin: 30px auto 0 auto;
+        margin: 40px auto 0 auto;
     }
 
     .bottom-buttons {
         width: 520px;
-        margin: 25px auto 0 auto;
+        margin: 30px auto 0 auto;
     }
 
     div[data-testid="stForm"] button {
         background-color: #FFD100 !important;
         color: #000 !important;
         font-weight: 700 !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         border: none !important;
-    }
-
-    div[data-testid="stForm"] button:hover {
-        background-color: #FFC000 !important;
     }
 
     .stButton > button {
         background-color: #FFD100 !important;
         color: #000 !important;
         font-weight: 700 !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         border: none !important;
-    }
-
-    .stButton > button:hover {
-        background-color: #FFC000 !important;
     }
 
     </style>
@@ -84,16 +138,12 @@ def render_configure_page(selected_tool: str = 'Tableau'):
 
     # ---------------- HEADER ----------------
     st.markdown(f"<h2 style='text-align:center;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
-    st.markdown(
-        "<p style='text-align:center; color:#555;'>Provide Tableau connection details (personal access token).</p>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<p style='text-align:center; color:#555;'>Provide Tableau connection details (personal access token).</p>", unsafe_allow_html=True)
 
-    # ---------------- FORM CARD ----------------
+    # ---------------- FORM ----------------
     st.markdown("<div class='config-card'>", unsafe_allow_html=True)
 
     with st.form("config_form"):
-
         server = st.text_input("Server", value=server_saved)
         api_version = st.text_input("API version", value=api_version_saved)
         token_name = st.text_input("Token name", value=token_name_saved)
@@ -107,85 +157,30 @@ def render_configure_page(selected_tool: str = 'Tableau'):
     # ---------------- TEST CONNECTION ----------------
     if test_conn:
         if server and token_name and token_secret:
-            with st.spinner("Testing connection..."):
-                try:
-                    config = {
-                        "tableau_prod": {
-                            "server": server,
-                            "api_version": api_version,
-                            "personal_access_token_name": token_name,
-                            "personal_access_token_secret": token_secret,
-                            "site_name": site_name,
-                        }
+            try:
+                config = {
+                    "tableau_prod": {
+                        "server": server,
+                        "api_version": api_version,
+                        "personal_access_token_name": token_name,
+                        "personal_access_token_secret": token_secret,
+                        "site_name": site_name,
                     }
+                }
 
-                    adapter_key = selected_tool.lower()
-                    r = requests.post(
-                        f"{BACKEND_URL}/reports/test-connection",
-                        json={"adapter": adapter_key, "config": config},
-                        timeout=30,
-                    )
-                    r.raise_for_status()
-                    st.success("Connection successful!")
-                except Exception as e:
-                    st.error(f"Connection failed: {e}")
+                r = requests.post(
+                    f"{BACKEND_URL}/reports/test-connection",
+                    json={"adapter": selected_tool.lower(), "config": config},
+                    timeout=30,
+                )
+                r.raise_for_status()
+                st.success("Connection successful!")
+            except Exception as e:
+                st.error(f"Connection failed: {e}")
         else:
             st.warning("Please fill required fields.")
 
-    # ---------------- UPLOAD SECTION ----------------
+    # ---------------- UPLOAD ----------------
     st.markdown("<div class='upload-section'>", unsafe_allow_html=True)
-
     st.markdown("### Upload metadata file")
-    uploaded_file = st.file_uploader("Drag and drop file here", type=["csv"])
-
-    if uploaded_file is not None:
-        try:
-            df_upload = pd.read_csv(uploaded_file)
-            st.success(f"Uploaded {uploaded_file.name}")
-            st.dataframe(df_upload.head())
-        except Exception as e:
-            st.error(f"Failed to read CSV: {e}")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # ---------------- SAVE & CANCEL ----------------
-    st.markdown("<div class='bottom-buttons'>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-
-    with col1:
-        save = st.button("Save", use_container_width=True)
-
-    with col2:
-        cancel = st.button("Cancel", use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # Save logic
-    if save:
-        try:
-            dfw = pd.DataFrame({
-                "server_saved": [server],
-                "api_version_saved": [api_version],
-                "token_name_saved": [token_name],
-                "token_secret_saved": [token_secret],
-                "site_name_saved": [site_name],
-                "site_url_saved": [""]
-            })
-            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
-            dfw.to_csv(cred_path, index=False)
-            st.success("Credentials saved")
-        except Exception as e:
-            st.error(f"Failed saving credentials: {e}")
-
-    # Cancel logic → go back to choose tool page
-    if cancel:
-        if "selected_tool" in st.session_state:
-            del st.session_state["selected_tool"]
-
-        st.session_state["page"] = "choose_tool"
-        st.rerun()
-
-
-if __name__ == "__main__":
-    st.set_page_config(page_title="bi4bi - Configure (debug)", layout="centered")
-    render_configure_page("Tableau")
+    uploaded_file = st.file_uploader("Drag and drop file here",
