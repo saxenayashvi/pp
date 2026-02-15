@@ -17,11 +17,11 @@ def _load_saved_credentials():
         try:
             df = pd.read_csv(cred_path)
             row = df.iloc[0]
-            server_saved = row.get('server_saved', "")
-            api_version_saved = row.get('api_version_saved', "3.17")
-            token_name_saved = row.get('token_name_saved', "")
-            token_secret_saved = row.get('token_secret_saved', "")
-            site_name_saved = row.get('site_name_saved', "")
+            server_saved = row.get("server_saved", "")
+            api_version_saved = row.get("api_version_saved", "3.17")
+            token_name_saved = row.get("token_name_saved", "")
+            token_secret_saved = row.get("token_secret_saved", "")
+            site_name_saved = row.get("site_name_saved", "")
         except:
             pass
 
@@ -37,38 +37,49 @@ def render_configure_page(selected_tool: str = "Tableau"):
     <style>
 
     .config-card {
-        background: rgba(255,255,255,0.95);
-        padding: 40px;
-        border-radius: 16px;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+        background: rgba(255,255,255,0.96);
+        padding: 45px;
+        border-radius: 18px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.08);
         width: 520px;
-        margin: auto;
+        margin: 0 auto;
     }
 
-    .upload-section {
+    .upload-box {
         width: 520px;
         margin: 40px auto 0 auto;
+        padding: 20px;
+        border: 1px dashed #d6d6d6;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.85);
     }
 
     .bottom-buttons {
         width: 520px;
         margin: 30px auto 0 auto;
+        text-align: center;
     }
 
+    /* Test button small centered */
     div[data-testid="stForm"] button {
         background-color: #FFD100 !important;
         color: #000 !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
         border: none !important;
+        width: 200px !important;
+        margin: 15px auto 0 auto !important;
+        display: block !important;
     }
 
+    /* Save button */
     .stButton > button {
         background-color: #FFD100 !important;
         color: #000 !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
         border: none !important;
+        min-width: 130px !important;
     }
 
     </style>
@@ -76,9 +87,12 @@ def render_configure_page(selected_tool: str = "Tableau"):
 
     # ---------------- HEADER ----------------
     st.markdown(f"<h2 style='text-align:center;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#555;'>Provide Tableau connection details (personal access token).</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='text-align:center; color:#555;'>Provide Tableau connection details (personal access token).</p>",
+        unsafe_allow_html=True
+    )
 
-    # ---------------- FORM ----------------
+    # ---------------- FORM CARD ----------------
     st.markdown("<div class='config-card'>", unsafe_allow_html=True)
 
     with st.form("config_form"):
@@ -88,7 +102,7 @@ def render_configure_page(selected_tool: str = "Tableau"):
         token_secret = st.text_input("Token secret", value=token_secret_saved)
         site_name = st.text_input("Site name", value=site_name_saved)
 
-        test_conn = st.form_submit_button("Test Connection", use_container_width=True)
+        test_conn = st.form_submit_button("Test Connection")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -118,40 +132,60 @@ def render_configure_page(selected_tool: str = "Tableau"):
         else:
             st.warning("Please fill required fields.")
 
-    # ---------------- UPLOAD ----------------
-    st.markdown("<div class='upload-section'>", unsafe_allow_html=True)
-    st.markdown("### Upload metadata file")
-    uploaded_file = st.file_uploader("Drag and drop file here", type=["csv"])
-    if uploaded_file:
+    # ---------------- UPLOAD SECTION ----------------
+    st.markdown("<div class='upload-box'>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns([3,1])
+
+    with col1:
+        uploaded_file = st.file_uploader(
+            "Drag and drop file here (CSV only)",
+            type=["csv"],
+            label_visibility="collapsed"
+        )
+
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        upload_btn = st.button("Upload")
+
+    if uploaded_file and upload_btn:
         df = pd.read_csv(uploaded_file)
         st.success(f"Uploaded {uploaded_file.name}")
         st.dataframe(df.head())
+
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ---------------- SAVE / CANCEL ----------------
     st.markdown("<div class='bottom-buttons'>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
 
-    with col1:
-        if st.button("Save", use_container_width=True):
-            dfw = pd.DataFrame({
-                "server_saved": [server],
-                "api_version_saved": [api_version],
-                "token_name_saved": [token_name],
-                "token_secret_saved": [token_secret],
-                "site_name_saved": [site_name],
-                "site_url_saved": [""]
-            })
-            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
-            dfw.to_csv(cred_path, index=False)
-            st.success("Credentials saved")
+    col1, col2, col3 = st.columns([2,1,1])
 
     with col2:
-        if st.button("Cancel", use_container_width=True):
-            if "selected_tool" in st.session_state:
-                del st.session_state["selected_tool"]
+        save = st.button("Save")
 
-            st.session_state["page"] = "choose_tool"
-            st.rerun()
+    with col3:
+        cancel = st.button("Cancel")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # Save logic
+    if save:
+        dfw = pd.DataFrame({
+            "server_saved": [server],
+            "api_version_saved": [api_version],
+            "token_name_saved": [token_name],
+            "token_secret_saved": [token_secret],
+            "site_name_saved": [site_name],
+            "site_url_saved": [""]
+        })
+        os.makedirs(os.path.dirname(cred_path), exist_ok=True)
+        dfw.to_csv(cred_path, index=False)
+        st.success("Credentials saved")
+
+    # Cancel → back to Choose Tool
+    if cancel:
+        if "selected_tool" in st.session_state:
+            del st.session_state["selected_tool"]
+
+        st.session_state["page"] = "choose_tool"
+        st.rerun()
