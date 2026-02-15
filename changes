@@ -303,3 +303,225 @@ def render_configure_page(selected_tool: str = 'Tableau'):
 
         st.session_state["page"] = "choose_tool"
         st.rerun()
+
+
+
+My_First_Page.py
+import streamlit as st
+import base64
+from pathlib import Path
+
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="BI4BI - EY",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+BASE = Path(__file__).parent
+USE_INTERNAL_BG_AND_LOGO = True
+
+
+# ---------------- SESSION ----------------
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+
+if "selected_tool" not in st.session_state:
+    st.session_state["selected_tool"] = None
+
+
+# ============================================================
+# PAGE 1 – HOME
+# ============================================================
+if st.session_state["page"] == "home":
+
+    st.markdown("<h1 style='text-align:center;'>BI4BI</h1>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <p style='text-align:center; max-width:600px; margin:auto;'>
+    BI4BI is designed to provide EY clients a suite of BI rationalization solutions.
+    It provides organized BI metadata and helps in BI modernization.
+    </p>
+    """, unsafe_allow_html=True)
+
+    if st.button("Begin", use_container_width=True):
+        st.session_state["page"] = "choose_tool"
+        st.rerun()
+
+
+# ============================================================
+# PAGE 2 – CHOOSE TOOL
+# ============================================================
+elif st.session_state["page"] == "choose_tool":
+
+    st.markdown("<h2 style='text-align:center;'>Select a BI Environment</h2>", unsafe_allow_html=True)
+
+    tools = [
+        {"name": "Tableau", "logo": "tableau.png"},
+        {"name": "Cognos", "logo": "cognos.png"},
+        {"name": "Power BI", "logo": "powerbi.png"},
+        {"name": "SQL Server", "logo": "SSRS.png"},
+        {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png"},
+        {"name": "SAP BusinessObjects", "logo": "sap-bo.png"},
+        {"name": "MicroStrategy", "logo": "strategy.png"},
+    ]
+
+    assets_dir = BASE / "assets"
+
+    # -------- First Row (4 tools) --------
+    row1 = st.columns(4)
+    for i in range(4):
+        tool = tools[i]
+        with row1[i]:
+            logo_path = assets_dir / tool["logo"]
+            if logo_path.exists():
+                st.image(str(logo_path), width=120)
+            if st.button("Configure", key=f"{tool['name']}"):
+                st.session_state["selected_tool"] = tool["name"]
+                st.session_state["page"] = "configure"
+                st.rerun()
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # -------- Second Row (3 tools centered) --------
+    row2 = st.columns([1,1,1,1,1])
+    for idx, tool in enumerate(tools[4:]):
+        with row2[idx + 1]:
+            logo_path = assets_dir / tool["logo"]
+            if logo_path.exists():
+                st.image(str(logo_path), width=120)
+            if st.button("Configure", key=f"{tool['name']}_2"):
+                st.session_state["selected_tool"] = tool["name"]
+                st.session_state["page"] = "configure"
+                st.rerun()
+
+    if st.button("Back to Home"):
+        st.session_state["page"] = "home"
+        st.rerun()
+
+
+# ============================================================
+# PAGE 3 – CONFIGURE
+# ============================================================
+elif st.session_state["page"] == "configure":
+
+    from frontend.tab_configure_app import render_configure_page
+    render_configure_page(st.session_state.get("selected_tool"))
+
+
+
+
+
+
+
+
+
+
+
+FULL frontend/tab_configure_app.py
+import os
+import streamlit as st
+import requests
+import pandas as pd
+from core.config import BACKEND_URL, CREDENTIALS_PATH
+
+
+def _load_saved_credentials():
+    cred_path = os.path.abspath(CREDENTIALS_PATH)
+    server_saved = ""
+    api_version_saved = "3.17"
+    token_name_saved = ""
+    token_secret_saved = ""
+    site_name_saved = ""
+
+    if os.path.exists(cred_path):
+        try:
+            df = pd.read_csv(cred_path)
+            row = df.iloc[0]
+            server_saved = row.get('server_saved', "")
+            api_version_saved = row.get('api_version_saved', "3.17")
+            token_name_saved = row.get('token_name_saved', "")
+            token_secret_saved = row.get('token_secret_saved', "")
+            site_name_saved = row.get('site_name_saved', "")
+        except:
+            pass
+
+    return cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved
+
+
+def render_configure_page(selected_tool: str = "Tableau"):
+
+    cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved = _load_saved_credentials()
+
+    st.markdown(f"<h2 style='text-align:center;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; color:#555;'>Provide connection details.</p>", unsafe_allow_html=True)
+
+    with st.form("config_form"):
+
+        server = st.text_input("Server", value=server_saved)
+        api_version = st.text_input("API Version", value=api_version_saved)
+        token_name = st.text_input("Token Name", value=token_name_saved)
+        token_secret = st.text_input("Token Secret", value=token_secret_saved, type="password")
+        site_name = st.text_input("Site Name", value=site_name_saved)
+
+        test_conn = st.form_submit_button("Test Connection", use_container_width=True)
+
+    # -------- TEST CONNECTION --------
+    if test_conn:
+        if server and token_name and token_secret:
+            try:
+                config = {
+                    "tableau_prod": {
+                        "server": server,
+                        "api_version": api_version,
+                        "personal_access_token_name": token_name,
+                        "personal_access_token_secret": token_secret,
+                        "site_name": site_name,
+                    }
+                }
+
+                r = requests.post(
+                    f"{BACKEND_URL}/reports/test-connection",
+                    json={"adapter": "tableau", "config": config},
+                    timeout=30,
+                )
+                r.raise_for_status()
+                st.success("Connection successful!")
+            except Exception as e:
+                st.error(f"Connection failed: {e}")
+        else:
+            st.warning("Please fill required fields.")
+
+    # -------- FILE UPLOAD --------
+    st.markdown("### Upload Metadata File")
+    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file)
+        st.success(f"Uploaded {uploaded_file.name}")
+        st.dataframe(df.head())
+
+    # -------- SAVE & CANCEL --------
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Save", use_container_width=True):
+            dfw = pd.DataFrame({
+                "server_saved": [server],
+                "api_version_saved": [api_version],
+                "token_name_saved": [token_name],
+                "token_secret_saved": [token_secret],
+                "site_name_saved": [site_name],
+                "site_url_saved": [""]
+            })
+            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
+            dfw.to_csv(cred_path, index=False)
+            st.success("Credentials saved")
+
+    with col2:
+        if st.button("Cancel", use_container_width=True):
+            if "selected_tool" in st.session_state:
+                del st.session_state["selected_tool"]
+
+            st.session_state["page"] = "choose_tool"
+            st.rerun()
