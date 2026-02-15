@@ -1,3 +1,295 @@
+import streamlit as st
+import base64
+from pathlib import Path
+from datetime import datetime
+
+
+# ---------------- PAGE CONFIG (must be first) ----------------
+st.set_page_config(
+    page_title="BI4BI - EY Landing Page",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+BASE = Path(__file__).parent
+
+USE_INTERNAL_BG_AND_LOGO = True  # internal pages background/logo
+
+
+# ---------------- UTILS ----------------
+def get_base64(path: Path) -> str:
+    return base64.b64encode(path.read_bytes()).decode("utf-8")
+
+
+def load_css(file_path: Path) -> None:
+    if file_path.exists():
+        st.markdown(f"<style>{file_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
+
+
+def _get_query_params():
+    """Support both new and old Streamlit APIs."""
+    try:
+        qp = dict(st.query_params)
+        return {k: (v[0] if isinstance(v, list) else v) for k, v in qp.items()}
+    except Exception:
+        qp = st.experimental_get_query_params()
+        return {k: (v[0] if isinstance(v, list) else v) for k, v in qp.items()}
+
+
+def _clear_query_params():
+    try:
+        st.query_params.clear()
+    except Exception:
+        st.experimental_set_query_params()
+
+
+# ---------------- INTERNAL PAGES: BACKGROUND / LOGO ----------------
+def inject_background():
+    import mimetypes
+    candidates = [BASE / "background.png", BASE.parent / "background.png"]
+    bg_path = next((p for p in candidates if p.exists()), None)
+    if not bg_path:
+        return
+
+    mime, _ = mimetypes.guess_type(str(bg_path))
+    mime = mime or "image/png"
+    b64 = get_base64(bg_path)
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: url("data:{mime};base64,{b64}") no-repeat fixed center center !important;
+            background-size: cover !important;
+        }}
+        section.main, .main .block-container, .block-container {{
+            background: transparent !important;
+            box-shadow: none !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def inject_logo():
+    candidates = [BASE / "ey_logo.png", BASE.parent / "ey_logo.png"]
+    logo_path = next((p for p in candidates if p.exists()), None)
+    if not logo_path:
+        return
+    b64 = get_base64(logo_path)
+
+    st.markdown(
+        f"""
+        <style>
+        .ey-logo-fixed {{
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 140px;
+            height: auto;
+            z-index: 100000;
+            pointer-events: none;
+            filter: drop-shadow(0 0 6px rgba(0,0,0,0.08));
+        }}
+        </style>
+        <img class="ey-logo-fixed" src="data:image/png;base64,{b64}" alt="EY Logo" />
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------- SESSION STATE ----------------
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+if "coming_soon_tool" not in st.session_state:
+    st.session_state["coming_soon_tool"] = None
+
+
+# ---------------- QUERY PARAM ROUTING (optional) ----------------
+qp = _get_query_params()
+qp_page = qp.get("page")
+if qp_page and st.session_state.get("page") != qp_page:
+    st.session_state["page"] = qp_page
+    _clear_query_params()
+    st.rerun()
+
+current_page = st.session_state["page"]
+
+# ---------------- OPTIONAL: global css ----------------
+# load_css(BASE / "merged-styles.css")
+
+
+# ============================================================
+# PAGE 1: HOME (Landing) — BI4BI title + description + Begin
+# ============================================================
+if current_page == "home":
+    # Assets
+    bg_candidates = [BASE / "background.png", BASE.parent / "background.png"]
+    logo_candidates = [BASE / "ey_logo.png", BASE.parent / "ey_logo.png"]
+    bg_path = next((p for p in bg_candidates if p.exists()), None)
+    logo_path = next((p for p in logo_candidates if p.exists()), None)
+
+    if not bg_path or not logo_path:
+        st.error("Missing background.png or ey_logo.png.")
+    else:
+        bg_b64 = get_base64(bg_path)
+        logo_b64 = get_base64(logo_path)
+
+        # ---------- HEADER + PAGE STYLE ----------
+        st.markdown(
+            f"""
+            <style>
+              /* Kill ALL scrollbars and overflow */
+              html, body {{
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+              }}
+              .stApp,
+              [data-testid="stAppViewContainer"],
+              section.main,
+              .main .block-container,
+              .block-container {{
+                overflow: hidden !important;
+                max-height: 100vh !important;
+              }}
+              .block-container {{
+                padding-top: 1rem !important;
+                padding-bottom: 0 !important;
+              }}
+
+              /* Hide streamlit chrome */
+              header, footer {{ visibility: hidden !important; height: 0 !important; }}
+              [data-testid="stToolbar"] {{ display: none !important; }}
+              [data-testid="stHeader"] {{ display: none !important; }}
+              [data-testid="stDecoration"] {{ display: none !important; }}
+
+              .stApp {{
+                background: url("data:image/png;base64,{bg_b64}") no-repeat center center !important;
+                background-size: cover !important;
+              }}
+
+              section.main, .main .block-container, .block-container {{
+                background: transparent !important;
+                box-shadow: none !important;
+              }}
+
+              /* EY Logo — fixed TOP-right */
+              .landing-logo {{
+                    position: fixed;
+                    top: 28px;
+                    right: 40px;
+                    z-index: 9999;
+              }}
+              .landing-logo img {{
+                    width: 120px;
+                    height: auto;
+              }}
+
+              /* Landing content wrapper — vertically centered, no overflow */
+              .landing-content {{
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 68vh;
+                    gap : 65px;
+                    padding: 0 20px;
+              }}
+
+              /* Title */
+              .landing-title {{
+                    font-size: 48px;
+                    font-weight: 800;
+                    color: #1a1a1a;
+                    font-family: 'EYInterstate', Arial, sans-serif;
+                    margin-bottom: 24px;
+                    letter-spacing: 1px;
+              }}
+
+              /* Description paragraph */
+              .landing-desc {{
+                    font-size: 20px;
+                    color: #333;
+                    font-family: 'EYInterstate', Arial, sans-serif;
+                    line-height: 1.65;
+                    text-align: justify;
+                    max-width: 560px;
+                    margin-bottom: 24px;
+              }}
+
+              /* Footer */
+              .landing-footer {{
+                    font-size: 11px;
+                    color: #888;
+                    text-align: center;
+                    margin-top: 6px;
+                    padding-bottom: 0;
+              }}
+
+              /* Begin button */
+              .stButton > button {{
+                    background-color: #FFD100 !important;
+                    color: #000 !important;
+                    height: 46px !important;
+                    font-size: 20px !important;
+                    font-weight: 700 !important;
+                    border: none !important;
+                    border-radius: 6px !important;
+              }}
+              .stButton > button:hover {{
+                    background-color: #FFC000 !important;
+              }}
+
+            </style>
+
+            <!-- FIXED EY LOGO (top-right) -->
+            <div class="landing-logo">
+                <img src="data:image/png;base64,{logo_b64}" />
+            </div>
+
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # ---------- CONTENT AREA ----------
+        left, mid, right = st.columns([0.3, 3.4, 0.3])
+        with mid:
+
+            st.markdown(
+                """
+                <div class="landing-content">
+                    <div class="landing-title">BI4BI</div>
+                    <div class="landing-desc">
+                        The <strong>BI4BI</strong> &ndash; the rationalization tool that is designed to
+                        provide EY's clients a suite of BI rationalization solution. The tool can provide
+                        end-to-end BI metadata with an organized view and suggest the possible
+                        rationalization based on each client's BI environment to reduce manual
+                        analysis of the BI environment for the BI modernization .
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # Begin Button
+            if st.button("Begin", use_container_width=True, key="landing_begin"):
+                st.session_state["page"] = "choose_tool"
+                st.rerun()
+
+            # Footer
+            st.markdown(
+                f"""
+                <div class="landing-footer">
+                    © {datetime.now().year} EYGM Limited. All Rights Reserved.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
 # ============================================================
 # PAGE 2: CHOOSE TOOL
 # ============================================================
@@ -136,96 +428,236 @@ elif current_page == "choose_tool":
                     st.session_state["coming_soon_tool"] = tool["name"]
                     st.rerun()
 
+# ============================================================
+# PAGE 3: CONFIGURE
+# ============================================================
+elif current_page == "configure":
+    if USE_INTERNAL_BG_AND_LOGO:
+        inject_background()
+        inject_logo()
 
+    selected_tool = st.session_state.get("selected_tool", "Tableau")
+
+    st.markdown("""
+    <style>
+    html, body, [data-testid="stAppViewContainer"], section.main, .block-container {
+        overflow: hidden !important;
+    }
+    section.main, .block-container {
+        padding-top: 0.3rem !important;
+        padding-bottom: 0 !important;
+        margin: 0 !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        height: 100vh !important;
+    }
+    /* Hide streamlit chrome */
+    header, footer { visibility: hidden !important; height: 0 !important; }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+
+    /* Fixed back button — top left corner */
+    .fixed-back-btn {
+        position: fixed;
+        top: 18px;
+        left: 24px;
+        z-index: 99999;
+    }
+    .fixed-back-btn a {
+        display: inline-block;
+        background:  #ffd54f;
+        color: #222;
+        font-weight: 600;
+        font-size: 0.85rem;
+        font-family: Arial, sans-serif;
+        padding: 0.35rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }
+    .fixed-back-btn a:hover {
+        transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
+    }
+    </style>
+
+    <!-- Fixed Back Button — top left -->
+    <div class="fixed-back-btn">
+        <a href="?page=choose_tool" target="_self">← Back</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    try:
+        from frontend.tab_configure_app import render_configure_page
+        render_configure_page(selected_tool)
+    except Exception as e:
+        st.markdown(f"## Configure: **{selected_tool}**")
+        st.warning("Could not load frontend.tab_configure_app.render_configure_page(). Showing fallback.")
+        st.code(str(e))
+
+
+# ============================================================
+# FALLBACK
+# ============================================================
+else:
+    st.session_state["page"] = "home"
+    st.rerun()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import streamlit as st
+import requests
+import pandas as pd
+from core.config import BACKEND_URL, CREDENTIALS_PATH
+
+# NOTE: this module exposes a callable function `render_configure_page(selected_tool)`
+# so the configuration UI can be embedded in other pages without creating a new Streamlit page.
+
+
+def _load_saved_credentials():
+    cred_path = os.path.abspath(CREDENTIALS_PATH)
+    server_saved = None
+    api_version_saved = '3.17'
+    token_name_saved = None
+    token_secret_saved = None
+    site_name_saved = ''
+    if os.path.exists(cred_path):
+        try:
+            df = pd.read_csv(cred_path)
+            row = df.iloc[0]
+            server_saved = row.get('server_saved')
+            api_version_saved = row.get('api_version_saved') or api_version_saved
+            token_name_saved = row.get('token_name_saved')
+            token_secret_saved = row.get('token_secret_saved')
+            site_name_saved = row.get('site_name_saved') or site_name_saved
+        except Exception:
+            pass
+    return cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved
 
 
 def render_configure_page(selected_tool: str = 'Tableau'):
+    """Render the configure UI for the given tool inside the current Streamlit page."""
 
     cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved = _load_saved_credentials()
 
-    # ------------------- PAGE STYLING -------------------
-    st.markdown("""
-    <style>
+    # ---------- Page styling ----------
+    st.markdown("""<style>
         html, body, .stApp {
+            margin: 0 !important;
+            padding: 0 !important;
             height: 100vh !important;
             overflow: hidden !important;
         }
-
-        header, footer { visibility: hidden !important; height: 0 !important; }
-        [data-testid="stToolbar"] { display: none !important; }
-
-        .center-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 40px;
+        /* Center the header */
+        h2 {
+            text-align: center !important;
         }
-
-        .form-card {
-            background: rgba(255,255,255,0.95);
-            padding: 35px 45px;
-            border-radius: 14px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-            width: 520px;
-        }
-
-        div[data-testid="stForm"] button {
+        /* Style the Save button yellow */
+        div[data-testid="stForm"] button[kind="secondaryFormSubmit"]:first-of-type,
+        div[data-testid="stForm"] button[type="submit"]:first-of-type {
             background-color: #FFD100 !important;
             color: #000 !important;
+            border: none !important;
             font-weight: 700 !important;
             border-radius: 8px !important;
-            border: none !important;
+            width: 100% !important;
         }
-
-        div[data-testid="stForm"] button:hover {
+        div[data-testid="stForm"] button[kind="secondaryFormSubmit"]:first-of-type:hover,
+        div[data-testid="stForm"] button[type="submit"]:first-of-type:hover {
             background-color: #FFC000 !important;
         }
-
-        .upload-section {
-            width: 520px;
-            margin-top: 30px;
+        /* Fixed back button — top left corner */
+        .fixed-back-btn {
+            position: fixed;
+            top: 18px;
+            left: 24px;
+            z-index: 99999;
         }
-
-        .bottom-buttons {
-            width: 520px;
-            margin-top: 25px;
+        .fixed-back-btn a {
+            display: inline-block;
+            background:  #ffd54f;
+            color: #222;
+            font-weight: 600;
+            font-size: 0.85rem;
+            font-family: Arial, sans-serif;
+            padding: 0.35rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.15s ease;
         }
-
-        .bottom-buttons button {
-            border-radius: 8px !important;
-            font-weight: 700 !important;
+        .fixed-back-btn a:hover {
+           transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
         }
-
     </style>
+
     """, unsafe_allow_html=True)
 
-    # ------------------- HEADER -------------------
+    # ---------- Header ----------
+    st.markdown(f"<h2 style='text-align:center; margin-bottom:0;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
     st.markdown(
-        f"<h2 style='text-align:center;'>Configure {selected_tool}</h2>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        "<p style='text-align:center; color:#555;'>Provide Tableau connection details (personal access token).</p>",
-        unsafe_allow_html=True
+        "<p style='text-align:center; color:#555; margin-top:0.2rem; margin-bottom:1rem;'>"
+        "Provide Tableau connection details (personal access token).</p>",
+        unsafe_allow_html=True,
     )
 
-    st.markdown("<div class='center-wrapper'>", unsafe_allow_html=True)
-    st.markdown("<div class='form-card'>", unsafe_allow_html=True)
-
-    # ------------------- FORM -------------------
+    # ---------- Form ----------
     with st.form('tableau'):
-
         server = st.text_input('Server', value=server_saved)
         api_version = st.text_input('API version', value=api_version_saved)
         token_name = st.text_input('Token name', value=token_name_saved)
         token_secret = st.text_input('Token secret', value=token_secret_saved)
         site_name = st.text_input('Site name', value=site_name_saved)
 
-        test_conn = st.form_submit_button('Test Connection', use_container_width=True)
+        # Save and Test Connection buttons side by side
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            submit = st.form_submit_button('Save', use_container_width=True)
+        with btn_col2:
+            test_conn = st.form_submit_button('Test Connection', use_container_width=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    # ---------- Handle Save ----------
+    if submit:
+        config = {
+            'tableau_prod': {
+                'server': server,
+                'api_version': api_version,
+                'personal_access_token_name': token_name,
+                'personal_access_token_secret': token_secret,
+                'site_name': site_name,
+            }
+        }
+        try:
+            dfw = pd.DataFrame({
+                'server_saved': [server],
+                'api_version_saved': [api_version],
+                'token_name_saved': [token_name],
+                'token_secret_saved': [token_secret],
+                'site_name_saved': [site_name],
+                'site_url_saved': ['']
+            })
+            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
+            dfw.to_csv(cred_path, index=False)
+            st.success('Credentials saved')
+        except Exception as e:
+            st.error(f'Failed saving credentials: {e}')
 
-    # ------------------- TEST CONNECTION -------------------
+    # ---------- Handle Test Connection ----------
     if test_conn:
         if server and token_name and token_secret:
             with st.spinner('Testing connection...'):
@@ -250,163 +682,23 @@ def render_configure_page(selected_tool: str = 'Tableau'):
                 except Exception as e:
                     st.error(f'Connection failed: {e}')
         else:
-            st.warning('Please fill required fields.')
+            st.warning('Please fill in Server, Token name, and Token secret to test the connection.')
 
-    # ------------------- UPLOAD SECTION -------------------
-    st.markdown("<div class='upload-section'>", unsafe_allow_html=True)
-
+    # ---------- Upload metadata file ----------
     uploaded_file = st.file_uploader("Upload metadata file", type=["csv"])
     if uploaded_file is not None:
         try:
             df_upload = pd.read_csv(uploaded_file)
-            st.success(f"Uploaded {uploaded_file.name}")
+            st.success(f"Uploaded {uploaded_file.name} — {len(df_upload)} rows")
             st.dataframe(df_upload.head())
         except Exception as e:
             st.error(f"Failed to read CSV: {e}")
 
-    st.markdown("</div>", unsafe_allow_html=True)
 
-    # ------------------- SAVE & CANCEL -------------------
-    st.markdown("<div class='bottom-buttons'>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-
-    with col1:
-        save = st.button("Save", use_container_width=True)
-
-    with col2:
-        cancel = st.button("Cancel", use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # ------------------- SAVE LOGIC -------------------
-    if save:
-        try:
-            dfw = pd.DataFrame({
-                'server_saved': [server],
-                'api_version_saved': [api_version],
-                'token_name_saved': [token_name],
-                'token_secret_saved': [token_secret],
-                'site_name_saved': [site_name],
-                'site_url_saved': ['']
-            })
-            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
-            dfw.to_csv(cred_path, index=False)
-            st.success('Credentials saved')
-        except Exception as e:
-            st.error(f'Failed saving credentials: {e}')
-
-    # ------------------- CANCEL LOGIC (BACK BEHAVIOR) -------------------
-    if cancel:
-        # Clear selected tool to avoid leftover state
-        if "selected_tool" in st.session_state:
-            del st.session_state["selected_tool"]
-
-        st.session_state["page"] = "choose_tool"
-        st.rerun()
-
-
-
-My_First_Page.py
-import streamlit as st
-import base64
-from pathlib import Path
-
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="BI4BI - EY",
-    layout="centered",
-    initial_sidebar_state="collapsed",
-)
-
-BASE = Path(__file__).parent
-USE_INTERNAL_BG_AND_LOGO = True
-
-
-# ---------------- SESSION ----------------
-if "page" not in st.session_state:
-    st.session_state["page"] = "home"
-
-if "selected_tool" not in st.session_state:
-    st.session_state["selected_tool"] = None
-
-
-# ============================================================
-# PAGE 1 – HOME
-# ============================================================
-if st.session_state["page"] == "home":
-
-    st.markdown("<h1 style='text-align:center;'>BI4BI</h1>", unsafe_allow_html=True)
-
-    st.markdown("""
-    <p style='text-align:center; max-width:600px; margin:auto;'>
-    BI4BI is designed to provide EY clients a suite of BI rationalization solutions.
-    It provides organized BI metadata and helps in BI modernization.
-    </p>
-    """, unsafe_allow_html=True)
-
-    if st.button("Begin", use_container_width=True):
-        st.session_state["page"] = "choose_tool"
-        st.rerun()
-
-
-# ============================================================
-# PAGE 2 – CHOOSE TOOL
-# ============================================================
-elif st.session_state["page"] == "choose_tool":
-
-    st.markdown("<h2 style='text-align:center;'>Select a BI Environment</h2>", unsafe_allow_html=True)
-
-    tools = [
-        {"name": "Tableau", "logo": "tableau.png"},
-        {"name": "Cognos", "logo": "cognos.png"},
-        {"name": "Power BI", "logo": "powerbi.png"},
-        {"name": "SQL Server", "logo": "SSRS.png"},
-        {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png"},
-        {"name": "SAP BusinessObjects", "logo": "sap-bo.png"},
-        {"name": "MicroStrategy", "logo": "strategy.png"},
-    ]
-
-    assets_dir = BASE / "assets"
-
-    # -------- First Row (4 tools) --------
-    row1 = st.columns(4)
-    for i in range(4):
-        tool = tools[i]
-        with row1[i]:
-            logo_path = assets_dir / tool["logo"]
-            if logo_path.exists():
-                st.image(str(logo_path), width=120)
-            if st.button("Configure", key=f"{tool['name']}"):
-                st.session_state["selected_tool"] = tool["name"]
-                st.session_state["page"] = "configure"
-                st.rerun()
-
-    st.markdown("<br><br>", unsafe_allow_html=True)
-
-    # -------- Second Row (3 tools centered) --------
-    row2 = st.columns([1,1,1,1,1])
-    for idx, tool in enumerate(tools[4:]):
-        with row2[idx + 1]:
-            logo_path = assets_dir / tool["logo"]
-            if logo_path.exists():
-                st.image(str(logo_path), width=120)
-            if st.button("Configure", key=f"{tool['name']}_2"):
-                st.session_state["selected_tool"] = tool["name"]
-                st.session_state["page"] = "configure"
-                st.rerun()
-
-    if st.button("Back to Home"):
-        st.session_state["page"] = "home"
-        st.rerun()
-
-
-# ============================================================
-# PAGE 3 – CONFIGURE
-# ============================================================
-elif st.session_state["page"] == "configure":
-
-    from frontend.tab_configure_app import render_configure_page
-    render_configure_page(st.session_state.get("selected_tool"))
+if __name__ == '__main__':
+    # Allow running this file directly for quick debugging
+    st.set_page_config(page_title='bi4bi - Configure (debug)', layout='centered')
+    render_configure_page('Tableau')
 
 
 
@@ -416,112 +708,4 @@ elif st.session_state["page"] == "configure":
 
 
 
-
-
-FULL frontend/tab_configure_app.py
-import os
-import streamlit as st
-import requests
-import pandas as pd
-from core.config import BACKEND_URL, CREDENTIALS_PATH
-
-
-def _load_saved_credentials():
-    cred_path = os.path.abspath(CREDENTIALS_PATH)
-    server_saved = ""
-    api_version_saved = "3.17"
-    token_name_saved = ""
-    token_secret_saved = ""
-    site_name_saved = ""
-
-    if os.path.exists(cred_path):
-        try:
-            df = pd.read_csv(cred_path)
-            row = df.iloc[0]
-            server_saved = row.get('server_saved', "")
-            api_version_saved = row.get('api_version_saved', "3.17")
-            token_name_saved = row.get('token_name_saved', "")
-            token_secret_saved = row.get('token_secret_saved', "")
-            site_name_saved = row.get('site_name_saved', "")
-        except:
-            pass
-
-    return cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved
-
-
-def render_configure_page(selected_tool: str = "Tableau"):
-
-    cred_path, server_saved, api_version_saved, token_name_saved, token_secret_saved, site_name_saved = _load_saved_credentials()
-
-    st.markdown(f"<h2 style='text-align:center;'>Configure {selected_tool}</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#555;'>Provide connection details.</p>", unsafe_allow_html=True)
-
-    with st.form("config_form"):
-
-        server = st.text_input("Server", value=server_saved)
-        api_version = st.text_input("API Version", value=api_version_saved)
-        token_name = st.text_input("Token Name", value=token_name_saved)
-        token_secret = st.text_input("Token Secret", value=token_secret_saved, type="password")
-        site_name = st.text_input("Site Name", value=site_name_saved)
-
-        test_conn = st.form_submit_button("Test Connection", use_container_width=True)
-
-    # -------- TEST CONNECTION --------
-    if test_conn:
-        if server and token_name and token_secret:
-            try:
-                config = {
-                    "tableau_prod": {
-                        "server": server,
-                        "api_version": api_version,
-                        "personal_access_token_name": token_name,
-                        "personal_access_token_secret": token_secret,
-                        "site_name": site_name,
-                    }
-                }
-
-                r = requests.post(
-                    f"{BACKEND_URL}/reports/test-connection",
-                    json={"adapter": "tableau", "config": config},
-                    timeout=30,
-                )
-                r.raise_for_status()
-                st.success("Connection successful!")
-            except Exception as e:
-                st.error(f"Connection failed: {e}")
-        else:
-            st.warning("Please fill required fields.")
-
-    # -------- FILE UPLOAD --------
-    st.markdown("### Upload Metadata File")
-    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-        st.success(f"Uploaded {uploaded_file.name}")
-        st.dataframe(df.head())
-
-    # -------- SAVE & CANCEL --------
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Save", use_container_width=True):
-            dfw = pd.DataFrame({
-                "server_saved": [server],
-                "api_version_saved": [api_version],
-                "token_name_saved": [token_name],
-                "token_secret_saved": [token_secret],
-                "site_name_saved": [site_name],
-                "site_url_saved": [""]
-            })
-            os.makedirs(os.path.dirname(cred_path), exist_ok=True)
-            dfw.to_csv(cred_path, index=False)
-            st.success("Credentials saved")
-
-    with col2:
-        if st.button("Cancel", use_container_width=True):
-            if "selected_tool" in st.session_state:
-                del st.session_state["selected_tool"]
-
-            st.session_state["page"] = "choose_tool"
-            st.rerun()
+    
