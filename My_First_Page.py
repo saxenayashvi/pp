@@ -212,7 +212,7 @@ if current_page == "home":
 
               /* Description paragraph */
               .landing-desc {{
-                    font-size: 17px;
+                    font-size: 20px;
                     color: #333;
                     font-family: 'EYInterstate', Arial, sans-serif;
                     line-height: 1.65;
@@ -235,7 +235,7 @@ if current_page == "home":
                     background-color: #FFD100 !important;
                     color: #000 !important;
                     height: 46px !important;
-                    font-size: 16px !important;
+                    font-size: 20px !important;
                     font-weight: 700 !important;
                     border: none !important;
                     border-radius: 6px !important;
@@ -299,98 +299,92 @@ elif current_page == "choose_tool":
         inject_logo()
 
     st.markdown(
-        f"""
+        """
         <style>
-        /* Kill scroll — fixed background */
-        html, body {{
-                margin: 0 !important;
-                padding: 0 !important;
-                height: 100vh !important;
-                max-height: 100vh !important;
-                overflow: hidden !important;
-        }}
-        .stApp,
-        [data-testid="stAppViewContainer"],
-        section.main,
-        .main .block-container,
-        .block-container {{
-                overflow: hidden !important;
-                max-height: 100vh !important;
-        }}
-        .block-container {{
-                padding-top: 0.3rem !important;
-                padding-bottom: 0 !important;
-                margin-top: 50px !important;
-        }}
+        html, body {
+            margin: 0 !important;
+            padding: 10px !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+        }
 
-        div[data-testid="stImage"] {{
+        .block-container {
+            padding-top: 0.8rem !important;
+            margin-top: 20px !important;
+        }
+
+        header, footer { visibility: hidden !important; height: 0 !important; }
+        [data-testid="stToolbar"] { display: none !important; }
+        [data-testid="stHeader"] { display: none !important; }
+
+        div[data-testid="stImage"] {
             display: flex !important;
             justify-content: center !important;
-            align-items: center !important;
-            height: 110px !important;
-        }}
+            margin-bottom: 10px !important;
+        }
 
-        /* Hide streamlit chrome */
-        header, footer {{ visibility: hidden !important; height: 0 !important; }}
-        [data-testid="stToolbar"] {{ display: none !important; }}
-        [data-testid="stHeader"] {{ display: none !important; }}
-        [data-testid="stDecoration"] {{ display: none !important; }}
-
-        /* Center configure buttons */
-        div[data-testid="stButton"] {{
+        div[data-testid="stButton"] {
             display: flex !important;
             justify-content: center !important;
-        }}
-        div[data-testid="stButton"] > button {{
+        }
+
+        div[data-testid="stButton"] > button {
             min-width: 140px !important;
             border-radius: 10px !important;
             background: #ffd54f !important;
             color: #1a1a1a !important;
             font-weight: 700 !important;
             border: none !important;
-            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
-        }}
-        div[data-testid="stButton"] > button:hover {{
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
-        }}
+        }
 
-        /* Center the tool grid columns content */
-        [data-testid="stVerticalBlock"] {{
-           
-        }}
-
-        /* Fixed back button — top left corner */
-        .fixed-back-btn {{
+        .fixed-back-btn {
             position: fixed;
-            top: 30px;
-            left: 24px;
-            z-index: 99999;
-        }}
-        .fixed-back-btn a {{
-            display: inline-block;
-            background: WHITE;    /* SAME as Configure button */
-            color: #1a1a1a !important;         /* SAME text color */
-            font-weight: 700 !important;       /* SAME bold style */
-            font-size: 1.7rem !important;
-            font-family: Arial, sans-serif;
-            padding: 0.45rem 1.2rem !important;
-            border-radius: 10px !important;    /* SAME rounded corners */
-            text-decoration: none !important;
-            border: none !important;
-            min-width: 140px !important;       /* EXACT width of Configure button */
-            text-align: center !important;
+            top: 28px;
+            left: 20px;
+            z-index: 9999;
+        }
 
-            transition: transform 0.15s ease,
-                        box-shadow 0.15s ease !important;
-        }}
-        .fixed-back-btn a:hover {{
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
-        }}
+        .fixed-back-btn a {
+            display: inline-block;
+            background: white;
+            color: #1a1a1a !important;
+            font-weight: 700 !important;
+            font-size: 2.0rem !important;
+            padding: 0.4rem 1.2rem !important;
+            border-radius: 10px !important;
+            text-decoration: none !important;
+            min-width: 140px !important;
+            text-align: center !important;
+        }
+
+        /* =========================================================
+           >>> ADDED SPACING FOR GRID / BUTTONS <<<
+           - Increase gap between columns (both rows)
+           - Add space between each logo and its Configure button
+           ========================================================= */
+        /* Column gap between items */
+        [data-testid="stColumns"] {
+            gap: 24px !important;              /* tweak: 16–32px */
+        }
+
+        /* Space between the logo and the Configure button */
+        div[data-testid="stButton"] {
+            margin-top: 10px !important;       /* tweak: 6–16px */
+        }
+
+        /* Optional: add a little space under each image as well */
+        div[data-testid="stImage"] {
+            margin-bottom: 14px !important;    /* was 10px */
+        }
+
+        /* Spacer element before second row only */
+        .row-spacer {
+            height: 28px;                      /* tweak: 20–40px */
+            width: 100%;
+        }
+        /* ========================================================= */
         </style>
 
-        <!-- Fixed Back Button — top left -->
         <div class="fixed-back-btn">
             <a href="?page=home" target="_self">BI4BI</a>
         </div>
@@ -398,51 +392,69 @@ elif current_page == "choose_tool":
         unsafe_allow_html=True
     )
 
+    st.markdown(
+        "<h2 style='text-align:center; margin-bottom:40px;'>Select a BI Environment</h2>",
+        unsafe_allow_html=True
+    )
+
     tools = [
         {"name": "Tableau", "logo": "tableau.png", "adapter_key": "tableau"},
-         {"name": "Cognos", "logo": "cognos.png", "adapter_key": None},
-        {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
+        {"name": "Cognos", "logo": "cognos.png", "adapter_key": None},
         {"name": "Power BI", "logo": "powerbi.png", "adapter_key": None},
+        {"name": "SQL Server", "logo": "SSRS.png", "adapter_key": None},
+        {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png", "adapter_key": None},
         {"name": "SAP BusinessObjects", "logo": "sap-bo.png", "adapter_key": None},
-        {"name": "SSRS", "logo": "SSRS.png", "adapter_key": None},
-         {"name": "Oracle OBIEE", "logo": "oracleOBIEE.png", "adapter_key": None},
+        {"name": "MicroStrategy", "logo": "strategy.png", "adapter_key": None},
     ]
 
     assets_dir = BASE / "assets"
 
-    if st.session_state.get("coming_soon_tool"):
-        st.info(
-            f"✨ **{st.session_state['coming_soon_tool']}** is on our roadmap. "
-            f"We're working hard to bring it to you soon!"
-        )
-        st.session_state["coming_soon_tool"] = None
-    st.markdown("<h1 style='margin-top: -0.5rem; padding-top: 0; text-align: center; font-size: 1.8rem;'>Select a BI Environment</h1>", unsafe_allow_html=True)
-    cols = st.columns(3)
-    for idx, tool in enumerate(tools):
-        col = cols[idx % 3]
-        if "tableau" in tool["name"].lower():
-            col = cols[1]  # Center Tableau
+    # ---------- FIRST ROW (4 tools) ----------
+    row1 = st.columns(4)
 
-        with col:
+    for i in range(4):
+        tool = tools[i]
+        with row1[i]:
             logo_path = assets_dir / tool["logo"]
             if logo_path.exists():
-                st.image(str(logo_path), width=140)
-            else:
-                st.write(f"Missing logo: {tool['logo']}")
+                st.image(str(logo_path), width=120)
 
-            key_safe = tool["name"].replace(" ", "_").replace("/", "_")
+            key_safe = tool["name"].replace(" ", "_")
 
             if tool["adapter_key"]:
-                if st.button("Configure", key=f"btn_select_{key_safe}"):
+                if st.button("Configure", key=f"btn_{key_safe}"):
                     st.session_state["selected_tool"] = tool["name"]
                     st.session_state["page"] = "configure"
                     st.rerun()
             else:
-                if st.button("Configure", key=f"btn_coming_{key_safe}"):
+                if st.button("Configure", key=f"btn_{key_safe}_coming"):
                     st.session_state["coming_soon_tool"] = tool["name"]
                     st.rerun()
 
+    # >>> EXTRA VERTICAL SPACE BETWEEN ROWS <<<
+    st.markdown('<div class="row-spacer"></div>', unsafe_allow_html=True)
 
+    # ---------- SECOND ROW (3 tools centered) ----------
+    row2 = st.columns([1, 1, 1, 1, 1])
+
+    for idx, tool in enumerate(tools[4:]):
+        with row2[idx + 1]:
+            logo_path = assets_dir / tool["logo"]
+            if logo_path.exists():
+                st.image(str(logo_path), width=120)
+
+            key_safe = tool["name"].replace(" ", "_")
+
+            if tool["adapter_key"]:
+                if st.button("Configure", key=f"btn_{key_safe}2"):
+                    st.session_state["selected_tool"] = tool["name"]
+                    st.session_state["page"] = "configure"
+                    st.rerun()
+            else:
+                if st.button("Configure", key=f"btn_{key_safe}_coming2"):
+                    st.session_state["coming_soon_tool"] = tool["name"]
+                    st.rerun()
+# ============================================================
 # ============================================================
 # PAGE 3: CONFIGURE
 # ============================================================
@@ -455,67 +467,98 @@ elif current_page == "configure":
 
     st.markdown("""
     <style>
-    html, body, [data-testid="stAppViewContainer"], section.main, .block-container {
-        overflow: hidden !important;
-    }
-    section.main, .block-container {
-        padding-top: 0.3rem !important;
-        padding-bottom: 0 !important;
-        margin: 0 !important;
-    }
-    [data-testid="stAppViewContainer"] {
+    /* Lock the page and remove scrollbars */
+    html, body {
         height: 100vh !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    /* Hide streamlit chrome */
+
+    /* Remove Streamlit chrome */
     header, footer { visibility: hidden !important; height: 0 !important; }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stHeader"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
 
-    /* Fixed back button — top left corner */
-    .fixed-back-btn {
+    /* Ensure app containers don't reintroduce scroll */
+    [data-testid="stAppViewContainer"],
+    section.main,
+    .main .block-container,
+    .block-container {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding-top: 4px !important;   /* space for fixed button/heading */
+        padding-bottom: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    /* Hide any visual scrollbar just in case of subpixel overflow */
+    ::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+    * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+
+    /* Keep your existing fixed home button styles */
+    .fixed-home-btn {
         position: fixed;
-        top: 18px;
-        left: 24px;
-        z-index: 99999;
+        top: 19px;
+        left: 7px;
+        z-index: 9999;
     }
-    .fixed-back-btn a {
+    .fixed-home-btn a {
         display: inline-block;
-        background:  #ffd54f;
-        color: #222;
-        font-weight: 600;
-        font-size: 0.85rem;
-        font-family: Arial, sans-serif;
-        padding: 0.35rem 1rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: background 0.15s ease;
+        background: white;
+        color: #1a1a1a !important;
+        font-weight: 700 !important;
+        font-size: 2.0rem !important;
+        
+        padding: 0.9rem 2.0rem !important;
+        border-radius: 9px !important;
+        text-decoration: none !important;
+        min-width: 200px !important;
+        text-align: center !important;
     }
-    .fixed-back-btn a:hover {
-        transform: translateY(-2px) !important;
-            box-shadow: 0 8px 24px rgba(255,140,0,0.32) !important;
+
+    /* --------------------------------------------------------
+       Target the Emotion class you saw in DevTools
+       NOTE: this value may change across sessions/builds.
+       -------------------------------------------------------- */
+
+    /* >>> YOUR CODE IS HERE <<< */
+    .st-emotion-cache-1rfkdi4 {
+        /* Example tweaks you showed in the screenshot: */
+        font-family: "Source Sans", sans-serif;
+        font-size: 1rem;
+        margin-bottom: -3rem;   /* pulls the block up to reduce extra space */
+        color: inherit;
+        max-width: 100%;
+        width: 100%;
+        overflow-wrap: break-word;
     }
+
+    /* --------------------------------------------------------
+       SAFER FALLBACK: catch the same block even if the hash changes,
+       by matching any class that starts with "st-emotion-cache-"
+       and is inside a Markdown container.
+       (Feel free to keep or remove this.)
+       -------------------------------------------------------- */
+    [data-testid="stMarkdownContainer"] > [class^="st-emotion-cache-"] {
+        margin-top: 0 !important;
+        /* if you want the same negative bottom margin as above: */
+         margin-bottom: -1rem !important; 
+        margin-top:1px;
+    }
+
     </style>
 
-    <!-- Fixed Back Button — top left -->
-    <div class="fixed-back-btn">
-        <a href="?page=choose_tool" target="_self">← Back</a>
+    <div class="fixed-home-btn">
+        <a href="?page=choose_tool" target="_self">BI4BI</a>
     </div>
     """, unsafe_allow_html=True)
 
-    try:
-        from frontend.tab_configure_app import render_configure_page
-        render_configure_page(selected_tool)
-    except Exception as e:
-        st.markdown(f"## Configure: **{selected_tool}**")
-        st.warning("Could not load frontend.tab_configure_app.render_configure_page(). Showing fallback.")
-        st.code(str(e))
+    from frontend.tab_configure_app import render_configure_page
+    render_configure_page(selected_tool)
 
-
-# ============================================================
-# FALLBACK
-# ============================================================
-else:
-    st.session_state["page"] = "home"
-    st.rerun()
